@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>和風 執筆ノ間・完</title>
+    <style>
+        :root {
+            --bg-paper: #fcfaf2;
+            --text-main: #2b2b2b;
+            --bar-bg: #fdfdfd;
+            --border-color: #dcd3b2;
+            --accent-color: #165e83;
+            --accent-danger: #b7282e;
+            --highlight: #fff3b8;
+            --selected-bg: #e3eff7;
+            --icon-color: #555;
+            --folder-color: #d0af4c;
+        }
+
+        body.dark-mode {
+            --bg-paper: #202124;
+            --text-main: #e8eaed;
+            --bar-bg: #303134;
+            --border-color: #5f6368;
+            --accent-color: #8ab4f8;
+            --accent-danger: #f28b82;
+            --highlight: #5f6368;
+            --selected-bg: #3c4043;
+            --icon-color: #9aa0a6;
+            --folder-color: #fdd663;
+        }
+
+        body {
+            font-family: "Yu Mincho", serif;
+            background-color: var(--bg-paper);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* 共通アイコンスタイル */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            vertical-align: middle;
+        }
+
+        /* ヘッダー */
+        .header {
+            padding: 0 10px;
+            background: var(--bar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        /* モード切替タブ */
+        .mode-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.05);
+            border-radius: 6px;
+            padding: 2px;
+            margin-right: 10px;
+        }
+        .tab-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--icon-color);
+        }
+        .tab-btn.active {
+            background: var(--bg-paper);
+            color: var(--accent-color);
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .menu-btn {
+            color: var(--icon-color);
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        /* メニューポップアップ */
+        .menu-popup {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: var(--bar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            width: 200px;
+            z-index: 100;
+        }
+        .menu-popup.show { display: flex; }
+        
+        .menu-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+
+        /* メインエリア */
+        .main-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* アウトラインモードの表示エリア */
+        #outlineView {
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px 10px 80px 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* 小説（テキスト）モードの表示エリア */
+        #novelView {
+            height: 100%;
+            display: none; /* 初期は非表示 */
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        
+        #novelTextarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.8;
+            font-family: "Yu Mincho", serif;
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        /* リストスタイル */
+        ul { list-style: none; padding-left: 0; margin: 0; min-height: 50px; }
+        ul ul { padding-left: 20px; border-left: 1px dashed var(--border-color); margin-top: 2px; }
+        .node { margin-bottom: 4px; }
+        .node-content {
+            display: flex; align-items: flex-start;
+            background: var(--bar-bg);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 6px 2px;
+            position: relative;
+        }
+        .node-content.selected { background-color: var(--selected-bg); border-color: var(--accent-color); }
+        
+        /* テキストエリア（ノード内） */
+        textarea.node-text {
+            flex-grow: 1; border: none; resize: none; outline: none;
+            font-size: 16px; line-height: 1.5; font-family: inherit;
+            padding: 2px 4px; background: transparent; color: var(--text-main);
+            min-height: 24px;
+        }
+
+        /* アイコン類 */
+        .handle { padding: 4px; color: var(--border-color); cursor: grab; display: flex; align-items: center; }
+        .folder-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #ccc; flex-shrink: 0; }
+        .has-children > .node-content > .folder-btn { color: var(--folder-color); }
+        .collapsed > ul { display: none; }
+        .collapsed > .node-content > .folder-btn { transform: rotate(-90deg); }
+
+        /* ボトムバー */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bar-bg);
+            border-top: 1px solid var(--border-color);
+            height: 50px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 20;
+        }
+        .bar-btn {
+            border: none; background: none; color: var(--icon-color);
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 10px;
+        }
+        .bar-btn:active { background: rgba(0,0,0,0.1); }
+        
+        /* 選択モード時の表示切替 */
+        body.selection-mode .node-content { padding-left: 30px; }
+        .select-indicator {
+            position: absolute; left: 4px; top: 10px; width: 16px; height: 16px;
+            border: 2px solid var(--icon-color); border-radius: 50%; display: none;
+            background: var(--bg-paper);
+        }
+        body.selection-mode .select-indicator { display: block; }
+        .node-content.selected .select-indicator { background: var(--accent-color); border-color: var(--accent-color); }
+        .select-overlay { position: absolute; left: 0; top: 0; bottom: 0; right: 0; z-index: 5; display: none; }
+        body.selection-mode .select-overlay { display: block; }
+
+        .mode-normal { display: flex; width: 100%; }
+        .mode-select { display: none; width: 100%; background: var(--selected-bg); }
+        body.selection-mode .bottom-bar .mode-normal { display: none; }
+        body.selection-mode .bottom-bar .mode-select { display: flex; }
+        
+        /* 小説モード時はボトムバーを隠す */
+        body.novel-mode .bottom-bar { display: none; }
+        body.novel-mode .editor-container { padding-bottom: 0; }
+
+        /* 通知 */
+        #notification {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px;
+            border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 101;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+    <div class="mode-tabs">
+        <button class="tab-btn active" id="btnOutline" onclick="switchView('outline')">構成</button>
+        <button class="tab-btn" id="btnNovel" onclick="switchView('novel')">小説</button>
+    </div>
+    
+    <div style="flex-grow:1; text-align:right; font-size:0.8rem; color:var(--icon-color); margin-right:10px;" id="wordCount">
+        0文字
+    </div>
+
+    <div class="menu-btn" onclick="toggleMenu()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
+</div>
+
+<div class="menu-popup" id="menuPopup">
+    <div class="menu-item" onclick="toggleDarkMode()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.06,6.81,6.55,9.37,5.51z"/></svg>
+        <span>ダークモード切替</span>
+    </div>
+    <div class="menu-item" onclick="exportFile()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <span>ファイル保存(DL)</span>
+    </div>
+    <div class="menu-item" onclick="triggerImport()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+        <span>ファイル読込</span>
+    </div>
+    <div class="menu-item" onclick="resetAll()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        <span>全消去</span>
+    </div>
+</div>
+
+<div class="main-container">
+    <div id="outlineView">
+        <ul id="rootList"></ul>
+    </div>
+    
+    <div id="novelView">
+        <textarea id="novelTextarea" placeholder="ここに自由に記述してください。構成モードに戻ると、改行ごとにリスト化されます..."></textarea>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <div class="mode-normal">
+        <button class="bar-btn" onclick="indentCurrent(-1)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm10 4H11v-2h10v2z"/></svg>
+            <span>字上げ</span>
+        </button>
+        <button class="bar-btn" onclick="indentCurrent(1)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>
+            <span>字下げ</span>
+        </button>
+        <button class="bar-btn" onclick="addNewNode()" style="color:var(--accent-color);">
+            <svg class="icon" style="width:32px;height:32px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        </button>
+        <button class="bar-btn" onclick="toggleSelectionMode()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41z"/></svg>
+            <span>選択</span>
+        </button>
+    </div>
+    <div class="mode-select">
+        <button class="bar-btn" onclick="moveSelected(-1)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
+            <span>上へ</span>
+        </button>
+        <button class="bar-btn" onclick="moveSelected(1)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
+            <span>下へ</span>
+        </button>
+        <button class="bar-btn" onclick="duplicateSelected()">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            <span>複製</span>
+        </button>
+        <button class="bar-btn" onclick="deleteSelected()" style="color:var(--accent-danger)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            <span>削除</span>
+        </button>
+        <button class="bar-btn" onclick="toggleSelectionMode()" style="font-weight:bold;">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            <span>完了</span>
+        </button>
+    </div>
+</div>
+
+<div id="notification"></div>
+<input type="file" id="fileInput" accept=".txt" style="display:none" onchange="importFile(this)">
+
+<script>
+    /* --------------------------------------
+       初期化とエラーハンドリング
+    -------------------------------------- */
+    let uniqueIdCounter = 0;
+    let focusedNode = null;
+    let currentView = 'outline'; // 'outline' or 'novel'
+
+    window.onerror = function(msg, url, line) {
+        alert("エラーが発生しました。\n" + msg);
+        return false;
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // SortableJSのチェック
+        if (typeof Sortable === 'undefined') {
+            alert("注意: ネット接続がないため、ドラッグ移動機能がオフになっています。\n(Wi-Fiにつなぐと機能します)");
+        }
+
+        loadFromLocal();
+        
+        // 初回起動時のガイド
+        if (document.getElementById('rootList').children.length === 0) {
+            addNode(document.getElementById('rootList'), "ここは執筆ノ間。");
+            addNode(document.getElementById('rootList'), "上の「小説」タブを押すと、");
+            addNode(document.getElementById('rootList'), "すべての行がつながったテキストになります。");
+            addNode(document.getElementById('rootList'), "「構成」に戻ると、改行がリストになります。");
+        }
+        
+        setupSortable(document.getElementById('rootList'));
+        
+        // メニュー外クリックで閉じる
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('menuPopup');
+            const btn = document.querySelector('.menu-btn');
+            if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        updateWordCount();
+    });
+
+    /* --------------------------------------
+       モード切替システム（構成⇔小説）
+    -------------------------------------- */
+    function switchView(mode) {
+        if (currentView === mode) return;
+
+        if (mode === 'novel') {
+            // アウトライン -> 小説（結合）
+            const text = serializeToText(document.getElementById('rootList'), 0);
