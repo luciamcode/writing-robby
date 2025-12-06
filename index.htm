@@ -9,7 +9,6 @@
         --bg-paper: #fcfaf2; --text: #2b2b2b; --bar-bg: #fdfdfd; --border: #dcd3b2;
         --accent: #165e83; --selected: #e3eff7; --danger: #b7282e; --btn-text: #666;
         --memo-bg: #f0f0e8; --highlight: #fff3b8;
-        /* 色ラベル用 */
         --c-red: #ffcdd2; --c-blue: #bbdefb; --c-green: #c8e6c9; --c-yellow: #fff9c4; --c-purple: #e1bee7;
     }
     body.dark-mode {
@@ -26,7 +25,7 @@
     textarea, input { font-family: inherit; }
     .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; }
 
-    /* --- プロジェクトタブ (最上部) --- */
+    /* --- プロジェクトタブ --- */
     .project-bar {
         height: 36px; background: var(--bar-bg); border-bottom: 1px solid var(--border);
         display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px;
@@ -42,7 +41,7 @@
     }
     .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; }
 
-    /* --- ツールヘッダー --- */
+    /* --- ヘッダー --- */
     .header {
         height: 44px; background: var(--bar-bg); border-bottom: 1px solid var(--border);
         display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
@@ -57,14 +56,10 @@
     
     /* --- メインエリア --- */
     #mainArea { flex: 1; overflow: hidden; position: relative; }
-    
-    /* アウトラインビュー */
     #listView { 
         height: 100%; overflow-y: auto; padding: 10px 10px 100px 10px; 
         box-sizing: border-box; -webkit-overflow-scrolling: touch; 
     }
-    
-    /* 小説ビュー */
     #novelView { 
         height: 100%; display: none; padding: 20px 15px 100px 15px; 
         box-sizing: border-box; overflow-y: auto; 
@@ -73,10 +68,9 @@
         width: 100%; min-height: 100%; border: none; background: transparent; 
         color: var(--text); font-size: 16px; line-height: 2.0; resize: none; outline: none; 
     }
-    /* タイプライター用のダミー余白 */
     #novelText::after { content: ""; display: block; height: 50vh; }
 
-    /* --- ノードスタイル --- */
+    /* --- ノード --- */
     ul { list-style: none; padding: 0; margin: 0; }
     ul ul { padding-left: 20px; border-left: 1px dashed var(--border); margin-top: 2px; }
     .node { margin-bottom: 6px; }
@@ -86,13 +80,11 @@
     }
     .node-content { display: flex; align-items: flex-start; padding: 6px 2px; }
     
-    /* 色ラベル */
     .node-box[data-color="red"] { background: var(--c-red); }
     .node-box[data-color="blue"] { background: var(--c-blue); }
     .node-box[data-color="green"] { background: var(--c-green); }
     .node-box[data-color="yellow"] { background: var(--c-yellow); }
     .node-box[data-color="purple"] { background: var(--c-purple); }
-
     .node-box.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
     
     textarea.row-text {
@@ -100,8 +92,6 @@
         font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 24px;
         margin-left: 4px;
     }
-    
-    /* メモ欄 */
     .node-memo {
         display: none; width: 100%; padding: 4px 8px; font-size: 12px; color: var(--btn-text);
         background: var(--memo-bg); border-top: 1px dashed var(--border);
@@ -109,11 +99,9 @@
     }
     .node-memo.show { display: block; }
     .memo-input { width: 100%; background: transparent; border: none; outline: none; resize: none; color: inherit; }
-
-    /* マーカー */
     mark { background: var(--highlight); color: inherit; padding: 0 2px; }
 
-    /* --- フッター (2段構え) --- */
+    /* --- フッター --- */
     .footer {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
         background: var(--bar-bg); border-top: 1px solid var(--border);
@@ -128,12 +116,9 @@
     }
     .f-btn:active { background: rgba(0,0,0,0.05); }
     
-    /* モード切替時のフッター制御 */
     body.select-mode .f-normal { display: none; }
     body.select-mode .f-select { display: flex; }
     .f-select { display: none; }
-    
-    /* 選択チェック */
     .check-circle { 
         width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; 
         margin-right: 4px; display: none; flex-shrink: 0; margin-top: 4px;
@@ -141,7 +126,7 @@
     body.select-mode .check-circle { display: block; }
     .node-box.selected .check-circle { background: var(--accent); border-color: var(--accent); }
 
-    /* --- 各種パネル --- */
+    /* --- パネル --- */
     .panel {
         position: fixed; top: 80px; left: 10px; right: 10px; bottom: 60px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
@@ -151,22 +136,16 @@
     .panel.show { display: flex; }
     .panel-header { padding: 10px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; }
     .panel-body { flex: 1; overflow-y: auto; padding: 10px; }
-    
-    /* 検索リスト */
     .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .search-item:active { background: var(--selected); }
 
     /* メニューポップアップ */
     .menu-popup {
-        position: absolute; top: 40px; right: 10px; width: 220px;
+        position: absolute; top: 40px; right: 10px; width: 240px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 101; display: none;
     }
     .menu-popup.show { display: block; }
-    .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-    .menu-row:last-child { border-bottom: none; }
-
-    .color-swatch { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #ddd; display: inline-block; margin-right: 4px; }
+    .menu-row { padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -181,13 +160,8 @@
         <button class="m-btn active" onclick="setMode('list')">構成</button>
         <button class="m-btn" onclick="setMode('novel')">小説</button>
     </div>
-    
     <div style="flex:1"></div>
-    
-    <div class="count-info" id="countInfo">
-        全: 0<br>選択: 0
-    </div>
-    
+    <div class="count-info" id="countInfo">全: 0<br>選: 0</div>
     <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
         <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     </div>
@@ -197,673 +171,5 @@
 </div>
 
 <div class="menu-popup" id="mainMenu">
-    <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
-    <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
-    <div class="menu-row" onclick="toggleImportExport()">floppy_disk 保存/読込 (MD/OPML)</div>
-    <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
-</div>
-
-<div class="panel" id="searchPanel">
-    <div class="panel-header">
-        <span>検索</span>
-        <span onclick="toggleSearch()">✕</span>
-    </div>
-    <div style="padding:10px; border-bottom:1px solid var(--border);">
-        <input type="text" id="searchInput" placeholder="検索ワード (正規表現可)" style="width:100%; padding:8px; box-sizing:border-box;">
-        <div style="margin-top:5px; text-align:right;">
-            <button onclick="runSearch()">実行</button>
-        </div>
-    </div>
-    <div class="panel-body" id="searchResultList"></div>
-</div>
-
-<div class="panel" id="ioPanel">
-    <div class="panel-header"><span>保存・読込</span><span onclick="toggleImportExport()">✕</span></div>
-    <div class="panel-body">
-        <h4>エクスポート</h4>
-        <button onclick="exportData('txt')">全文テキスト (.txt)</button>
-        <button onclick="exportData('md')">Markdown (.md)</button>
-        <button onclick="exportData('opml')">OPML (.opml)</button>
-        <hr>
-        <h4>インポート</h4>
-        <input type="file" id="fileInput" onchange="importFile(this)">
-    </div>
-</div>
-
-<div class="panel" id="tplPanel">
-    <div class="panel-header"><span>テンプレート</span><span onclick="toggleTemplate()">✕</span></div>
-    <div class="panel-body">
-        <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
-        <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
-        <div class="search-item" onclick="insertTemplate('……\n　　　******\n……')">場面転換（アスタリスク）</div>
-    </div>
-</div>
-
-
-<div id="mainArea">
-    <div id="listView"><ul id="rootList"></ul></div>
-    <div id="novelView"><textarea id="novelText" oninput="handleNovelInput()" onclick="handleNovelInput()"></textarea></div>
-</div>
-
-<div class="footer">
-    <div class="toolbar-row">
-        <div class="f-btn" onclick="undo()" style="flex:0.6"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>戻す</div>
-        <div class="f-btn" onclick="redo()" style="flex:0.6"><svg class="icon" viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>進む</div>
-        
-        <div style="width:1px; background:var(--border); height:60%;"></div>
-
-        <div class="f-btn f-normal" onclick="moveIndent(-1)">
-             <svg class="icon" viewBox="0 0 24 24"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm10 4H11v-2h10v2z"/></svg>字上げ
-        </div>
-        <div class="f-btn f-normal" onclick="moveIndent(1)">
-             <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>字下げ
-        </div>
-        <div class="f-btn f-normal" onclick="addNode()" style="color:var(--accent)">
-            <svg class="icon" style="width:28px;height:28px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-        </div>
-        <div class="f-btn f-normal" onclick="toggleSelectMode()">
-             <svg class="icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41z"/></svg>選択
-        </div>
-
-        <div class="f-btn f-select" onclick="moveItem(-1)">⬆ 移動</div>
-        <div class="f-btn f-select" onclick="moveItem(1)">⬇ 移動</div>
-        <div class="f-btn f-select" onclick="mergeNodes()">🔗 結合</div>
-        <div class="f-btn f-select" onclick="setNodeColorMenu()">🎨 色</div>
-        <div class="f-btn f-select" onclick="deleteItem()" style="color:var(--danger)">🗑 削除</div>
-        <div class="f-btn f-select" onclick="toggleSelectMode()" style="font-weight:bold;">✔ 完了</div>
-    </div>
-</div>
-
-<script>
-/* --------------------------------------------------
-   データ構造・状態管理
-   -------------------------------------------------- */
-const STORAGE_KEY = 'wafu_v3_projects';
-let projects = [];
-let currentProjectId = null;
-let currentMode = 'list'; // 'list' or 'novel'
-let undoStack = [];
-let redoStack = [];
-let uidCounter = 0;
-
-// 初期化
-window.onload = () => {
-    loadProjects();
-    if (projects.length === 0) createProject("本編");
-    
-    // URLハッシュや保存状態から復帰可能ならする（今回は簡易的に0番目）
-    switchProject(projects[0].id);
-    
-    // クリックイベントの整理
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.menu-popup') && !e.target.closest('.f-btn') && !e.target.closest('.icon')) {
-            document.getElementById('mainMenu').classList.remove('show');
-        }
-    });
-};
-
-/* --------------------------------------------------
-   プロジェクト(タブ)管理
-   -------------------------------------------------- */
-function loadProjects() {
-    try {
-        const str = localStorage.getItem(STORAGE_KEY);
-        if (str) projects = JSON.parse(str);
-    } catch(e) { console.error(e); }
-}
-
-function saveProjects() {
-    // 現在のDOMの状態をprojects配列に反映してから保存
-    if (currentProjectId) {
-        const p = projects.find(p => p.id === currentProjectId);
-        if (p) {
-            p.tree = serializeTree(document.getElementById('rootList'));
-            p.novel = document.getElementById('novelText').value;
-            p.mode = currentMode;
-        }
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-}
-
-function createProject(name) {
-    const newId = 'proj_' + Date.now();
-    projects.push({
-        id: newId,
-        name: name,
-        tree: [{text: "新しいプロジェクト", children:[], color:"", memo:""}],
-        novel: "",
-        mode: 'list'
-    });
-    saveProjects();
-    renderTabs();
-    if (projects.length === 1) switchProject(newId);
-}
-
-function addProject() {
-    const name = prompt("新しいタブの名前:", "新規");
-    if (name) createProject(name);
-}
-
-function renderTabs() {
-    const bar = document.getElementById('projectBar');
-    // +ボタン以外を削除して再描画
-    const addBtn = bar.querySelector('.p-add-btn');
-    bar.innerHTML = '';
-    
-    projects.forEach(p => {
-        const div = document.createElement('div');
-        div.className = `p-tab ${p.id === currentProjectId ? 'active' : ''}`;
-        div.innerText = p.name;
-        div.onclick = () => switchProject(p.id);
-        bar.appendChild(div);
-    });
-    bar.appendChild(addBtn);
-}
-
-function switchProject(id) {
-    if (currentProjectId === id) return;
-    // 保存
-    saveProjects();
-    
-    currentProjectId = id;
-    const p = projects.find(p => p.id === id);
-    
-    // スタッククリア
-    undoStack = []; redoStack = [];
-    
-    // 描画
-    document.getElementById('rootList').innerHTML = '';
-    buildTree(document.getElementById('rootList'), p.tree);
-    document.getElementById('novelText').value = p.novel || "";
-    
-    setMode(p.mode || 'list');
-    renderTabs();
-    pushHistory(); // 初期状態
-}
-
-function resetProject() {
-    if (!confirm("このタブを削除しますか？")) return;
-    projects = projects.filter(p => p.id !== currentProjectId);
-    if (projects.length === 0) createProject("新規");
-    switchProject(projects[0].id);
-    saveProjects();
-}
-
-/* --------------------------------------------------
-   Undo / Redo システム
-   -------------------------------------------------- */
-function pushHistory() {
-    // 現在の状態(ツリー構造とテキスト)をスナップショット保存
-    const snapshot = {
-        tree: serializeTree(document.getElementById('rootList')),
-        novel: document.getElementById('novelText').value,
-        mode: currentMode
-    };
-    
-    // 変更がない場合は追加しない簡易チェック
-    if (undoStack.length > 0) {
-        const last = undoStack[undoStack.length - 1];
-        if (JSON.stringify(last) === JSON.stringify(snapshot)) return;
-    }
-
-    undoStack.push(snapshot);
-    if (undoStack.length > 50) undoStack.shift(); // 履歴制限
-    redoStack = []; // 新しい操作をしたらRedoは消える
-    saveProjects(); // ここで永続化も兼ねる
-    updateCount();
-}
-
-function undo() {
-    if (undoStack.length <= 1) return; // 初期状態より前には戻れない
-    redoStack.push(undoStack.pop());
-    const prev = undoStack[undoStack.length - 1];
-    restoreSnapshot(prev);
-}
-
-function redo() {
-    if (redoStack.length === 0) return;
-    const next = redoStack.pop();
-    undoStack.push(next);
-    restoreSnapshot(next);
-}
-
-function restoreSnapshot(snap) {
-    document.getElementById('rootList').innerHTML = '';
-    buildTree(document.getElementById('rootList'), snap.tree);
-    document.getElementById('novelText').value = snap.novel;
-    if (currentMode !== snap.mode) setMode(snap.mode);
-    saveProjects();
-    updateCount();
-}
-
-/* --------------------------------------------------
-   ノード操作・DOM構築
-   -------------------------------------------------- */
-function generateId() { return 'n' + (++uidCounter); }
-
-function addNode(text="", parentUl=null, color="", memo="") {
-    const ul = parentUl || document.getElementById('rootList');
-    const li = document.createElement('li');
-    li.className = 'node';
-    li.id = generateId();
-    
-    const hasMemo = memo ? 'show' : '';
-    
-    li.innerHTML = `
-        <div class="node-box" data-color="${color}">
-            <div class="node-content" onclick="handleNodeClick(this)">
-                <div class="check-circle"></div>
-                <div style="padding:4px; color:#ccc; cursor:grab;" ontouchstart="preventDrag(event)">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-                </div>
-                <textarea class="row-text" rows="1" oninput="resize(this); updateCount()" onblur="pushHistory()">${escapeHtml(text)}</textarea>
-                <div style="padding:4px; color:#ccc;" onclick="toggleMemo(this)">
-                    <svg class="icon" style="width:16px;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                </div>
-            </div>
-            <div class="node-memo ${hasMemo}">
-                <textarea class="memo-input" placeholder="メモ・裏設定..." oninput="pushHistory()">${escapeHtml(memo)}</textarea>
-            </div>
-        </div>
-        <ul></ul>
-    `;
-    
-    ul.appendChild(li);
-    resize(li.querySelector('.row-text'));
-    return li;
-}
-
-function preventDrag(e) { e.preventDefault(); } // スマホでの誤動作防止
-
-// ツリー構築
-function buildTree(ul, data) {
-    data.forEach(d => {
-        const li = addNode(d.text, ul, d.color, d.memo);
-        if (d.children) buildTree(li.querySelector('ul'), d.children);
-    });
-}
-
-// ツリー保存用データ生成
-function serializeTree(ul) {
-    return Array.from(ul.children).map(li => {
-        const box = li.querySelector('.node-box');
-        return {
-            text: li.querySelector('.row-text').value,
-            color: box.getAttribute('data-color') || "",
-            memo: li.querySelector('.memo-input').value,
-            children: serializeTree(li.querySelector('ul'))
-        };
-    });
-}
-
-// テキストエリアリサイズ
-function resize(ta) {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
-}
-
-/* --------------------------------------------------
-   モード切替 (構成 ⇔ 小説)
-   -------------------------------------------------- */
-function setMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(mode === 'list' ? '.m-btn:nth-child(1)' : '.m-btn:nth-child(2)').classList.add('active');
-    
-    const listV = document.getElementById('listView');
-    const novelV = document.getElementById('novelView');
-    const footer = document.querySelector('.footer');
-
-    if (mode === 'novel') {
-        // リスト -> 小説結合
-        const root = document.getElementById('rootList');
-        let txt = "";
-        function traverse(ul, depth) {
-            Array.from(ul.children).forEach(li => {
-                txt += "　".repeat(depth) + li.querySelector('.row-text').value + "\n";
-                traverse(li.querySelector('ul'), depth + 1);
-            });
-        }
-        traverse(root, 0);
-        document.getElementById('novelText').value = txt;
-        
-        listV.style.display = 'none';
-        novelV.style.display = 'block';
-        footer.style.display = 'none'; // 小説モードは執筆集中
-    } else {
-        // 小説 -> リスト分解
-        const text = document.getElementById('novelText').value;
-        const root = document.getElementById('rootList');
-        
-        // 既存の構造をなるべく維持したいが、簡易実装として再構築
-        // ※高度な維持をするならDiffが必要だが今回は全書き換え
-        root.innerHTML = '';
-        const lines = text.split('\n');
-        const stack = [{level:-1, ul:root}];
-        
-        lines.forEach(line => {
-            if (!line.trim()) return;
-            // インデント判定
-            const indentMatch = line.match(/^(　|\t|\s)+/);
-            const indentStr = indentMatch ? indentMatch[0] : "";
-            // 全角スペース=1レベル換算
-            let level = indentStr.replace(/　/g, ' ').replace(/\t/g, ' ').length;
-            
-            // 階層飛びすぎ補正
-            if (level > stack[stack.length-1].level + 1) level = stack[stack.length-1].level + 1;
-            
-            while(stack.length > 1 && stack[stack.length-1].level >= level) stack.pop();
-            
-            const li = addNode(line.trim(), stack[stack.length-1].ul);
-            stack.push({level:level, ul:li.querySelector('ul')});
-        });
-        
-        listV.style.display = 'block';
-        novelV.style.display = 'none';
-        footer.style.display = 'block';
-    }
-    updateCount();
-}
-
-/* --------------------------------------------------
-   各種アクション
-   -------------------------------------------------- */
-
-// --- 選択モード ---
-function toggleSelectMode() {
-    document.body.classList.toggle('select-mode');
-    document.querySelectorAll('.node-box').forEach(b => b.classList.remove('selected'));
-}
-function handleNodeClick(content) {
-    if (document.body.classList.contains('select-mode')) {
-        content.parentElement.classList.toggle('selected');
-        updateCount();
-    }
-}
-function getSelectedLis() {
-    return Array.from(document.querySelectorAll('.node-box.selected')).map(b => b.closest('li'));
-}
-
-// --- 階層移動 ---
-function moveIndent(dir) {
-    // 選択がない場合はフォーカス行
-    const targets = getSelectedLis();
-    const list = targets.length ? targets : [getFocusedLi()];
-    
-    list.forEach(li => {
-        if(!li) return;
-        if (dir === 1) { // 下げ
-            const prev = li.previousElementSibling;
-            if (prev) {
-                prev.querySelector('ul').appendChild(li);
-                prev.querySelector('ul').style.display = 'block'; // 開く
-            }
-        } else { // 上げ
-            const parentLi = li.parentElement.closest('li');
-            if (parentLi) parentLi.after(li);
-        }
-    });
-    pushHistory();
-}
-
-function moveItem(dir) {
-    const targets = getSelectedLis();
-    if (!targets.length) return;
-    (dir === 1 ? targets.reverse() : targets).forEach(li => {
-        if (dir === -1 && li.previousElementSibling) li.parentElement.insertBefore(li, li.previousElementSibling);
-        if (dir === 1 && li.nextElementSibling) li.parentElement.insertBefore(li, li.nextElementSibling.nextElementSibling);
-    });
-    pushHistory();
-}
-
-function deleteItem() {
-    const targets = getSelectedLis();
-    if (!targets.length) return;
-    if (!confirm(`${targets.length}件削除しますか？`)) return;
-    targets.forEach(li => li.remove());
-    toggleSelectMode();
-    pushHistory();
-}
-
-// --- 結合/分割 (マージ/スプリット) ---
-function mergeNodes() {
-    const targets = getSelectedLis();
-    if (targets.length < 2) { alert("2つ以上選択してください"); return; }
-    
-    const first = targets[0];
-    let mergedText = first.querySelector('.row-text').value;
-    
-    for (let i = 1; i < targets.length; i++) {
-        mergedText += "\n" + targets[i].querySelector('.row-text').value;
-        // 子要素があればfirstに移動
-        const kids = Array.from(targets[i].querySelector('ul').children);
-        kids.forEach(k => first.querySelector('ul').appendChild(k));
-        targets[i].remove();
-    }
-    first.querySelector('.row-text').value = mergedText;
-    resize(first.querySelector('.row-text'));
-    toggleSelectMode();
-    pushHistory();
-}
-
-function splitNode(li) {
-    // ※今回は明示的なボタンではなく、テキストエリア内での改行検知などは複雑になるため
-    // 「小説モードを経由する」のが一番綺麗ですが、
-    // 要望にある「マージ⇔バラす」のバラすは実質「小説モード→構成モード」で実現されています。
-    alert("ノード内の改行で分割するには、一度「小説モード」にしてから戻してください。");
-}
-
-// --- 色、メモ ---
-function setNodeColorMenu() {
-    const targets = getSelectedLis();
-    if (!targets.length) return;
-    const colors = ['red', 'blue', 'green', 'yellow', 'purple', ''];
-    const c = prompt("色を選択 (red, blue, green, yellow, purple, 空白で解除)", "red");
-    if (colors.includes(c) || c === "") {
-        targets.forEach(li => li.querySelector('.node-box').setAttribute('data-color', c));
-        toggleSelectMode();
-        pushHistory();
-    }
-}
-
-function toggleMemo(btn) {
-    const memoDiv = btn.closest('.node-box').querySelector('.node-memo');
-    memoDiv.classList.toggle('show');
-}
-
-// --- 検索 ---
-function toggleSearch() {
-    const p = document.getElementById('searchPanel');
-    p.classList.toggle('show');
-    if (p.classList.contains('show')) document.getElementById('searchInput').focus();
-}
-
-function runSearch() {
-    const q = document.getElementById('searchInput').value;
-    const list = document.getElementById('searchResultList');
-    list.innerHTML = '';
-    if (!q) return;
-
-    try {
-        const regex = new RegExp(q);
-        document.querySelectorAll('.row-text').forEach(ta => {
-            if (regex.test(ta.value)) {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                div.innerText = ta.value.substring(0, 30) + "...";
-                div.onclick = () => {
-                    ta.scrollIntoView({behavior:"smooth", block:"center"});
-                    ta.parentElement.style.background = "#fff3b8"; // ハイライト
-                    setTimeout(()=>ta.parentElement.style.background="", 2000);
-                    toggleSearch();
-                };
-                list.appendChild(div);
-            }
-        });
-    } catch(e) { alert("正規表現エラー"); }
-}
-
-// --- テンプレート ---
-function toggleTemplate() {
-    document.getElementById('tplPanel').classList.toggle('show');
-    document.getElementById('mainMenu').classList.remove('show');
-}
-function insertTemplate(text) {
-    if (currentMode === 'list') {
-        const li = addNode(text, null); // 末尾に追加
-        li.scrollIntoView();
-    } else {
-        const ta = document.getElementById('novelText');
-        const pos = ta.selectionStart;
-        ta.value = ta.value.slice(0, pos) + text + ta.value.slice(pos);
-    }
-    toggleTemplate();
-    pushHistory();
-}
-
-// --- 文字数カウント ---
-function updateCount() {
-    let total = 0;
-    let select = 0;
-    
-    if (currentMode === 'novel') {
-        const ta = document.getElementById('novelText');
-        total = ta.value.length;
-        select = ta.selectionEnd - ta.selectionStart;
-    } else {
-        document.querySelectorAll('.row-text').forEach(t => total += t.value.length);
-        const selLis = getSelectedLis();
-        selLis.forEach(li => select += li.querySelector('.row-text').value.length);
-    }
-    document.getElementById('countInfo').innerHTML = `全: ${total}<br>選: ${select}`;
-}
-
-// --- 小説モード: タイプライタービュー ---
-function handleNovelInput() {
-    const ta = document.getElementById('novelText');
-    updateCount();
-    // カーソル位置へスクロール調整
-    // ※textarea内の正確なピクセル位置取得は難しいが、
-    // 簡易的に「入力中は常にキャレットが真ん中にくる」ようにblur/focusを使う手もあるが
-    // スマホではキーボード制御が難しいため、標準のスクロールに任せつつ
-    // 定期的にセンタリングする
-}
-// 簡易タイプライター: 選択変更時にスクロール
-document.addEventListener('selectionchange', () => {
-    if (currentMode === 'novel' && document.activeElement.id === 'novelText') {
-        // caretの位置推定はdiv mirror等が必要で重いため、
-        // 「入力している行」というよりはフォーカス維持を優先
-    }
-});
-
-
-/* --------------------------------------------------
-   インポート / エクスポート
-   -------------------------------------------------- */
-function toggleImportExport() {
-    document.getElementById('ioPanel').classList.toggle('show');
-    document.getElementById('mainMenu').classList.remove('show');
-}
-
-function exportData(type) {
-    let content = "";
-    const root = document.getElementById('rootList');
-    
-    if (type === 'txt') {
-        // 全文テキスト
-        if (currentMode === 'novel') content = document.getElementById('novelText').value;
-        else {
-            function trav(ul, d) {
-                let s = "";
-                Array.from(ul.children).forEach(li => {
-                    s += "　".repeat(d) + li.querySelector('.row-text').value + "\n";
-                    s += trav(li.querySelector('ul'), d+1);
-                });
-                return s;
-            }
-            content = trav(root, 0);
-        }
-    } else if (type === 'md') {
-        // Markdown
-        function travMd(ul, d) {
-            let s = "";
-            Array.from(ul.children).forEach(li => {
-                s += "  ".repeat(d) + "- " + li.querySelector('.row-text').value + "\n";
-                s += travMd(li.querySelector('ul'), d+1);
-            });
-            return s;
-        }
-        content = travMd(root, 0);
-    } else if (type === 'opml') {
-        // OPML
-        content = `<?xml version="1.0"?><opml version="2.0"><head><title>Export</title></head><body>`;
-        function travOpml(ul) {
-            let s = "";
-            Array.from(ul.children).forEach(li => {
-                const txt = escapeHtml(li.querySelector('.row-text').value);
-                s += `<outline text="${txt}">`;
-                s += travOpml(li.querySelector('ul'));
-                s += `</outline>`;
-            });
-            return s;
-        }
-        content += travOpml(root) + `</body></opml>`;
-    }
-
-    const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `export.${type}`;
-    a.click();
-}
-
-function importFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const text = e.target.result;
-        // 簡易判定
-        if (text.trim().startsWith("<?xml")) {
-            // OPMLパースは省略(正規表現で簡易抽出)
-            alert("OPMLインポートは簡易テキスト変換されます");
-            const matches = text.match(/text="([^"]*)"/g);
-            if(matches) {
-                const extracted = matches.map(m => m.slice(6, -1)).join("\n");
-                document.getElementById('novelText').value = extracted;
-            }
-        } else {
-            // MD or TXT
-            document.getElementById('novelText').value = text;
-        }
-        setMode('novel'); // 一旦小説モードで読み込む
-        pushHistory();
-        toggleImportExport();
-    };
-    reader.readAsText(file);
-}
-
-/* --------------------------------------------------
-   ユーティリティ
-   -------------------------------------------------- */
-function getFocusedLi() {
-    const ae = document.activeElement;
-    return (ae && ae.classList.contains('row-text')) ? ae.closest('li') : null;
-}
-function escapeHtml(str) {
-    if(!str) return "";
-    return str.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-    });
-}
-function toggleDark() {
-    document.body.classList.toggle('dark-mode');
-}
-function toggleMenu() {
-    document.getElementById('mainMenu').classList.toggle('show');
-}
-
-</script>
-</body>
-</html>
+    <div class="menu-row" onclick="toggleDark()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,1
