@@ -4,121 +4,397 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>和風 執筆ノ間</title>
-<script>
-// ■ エラー通知機能（動かない原因を画面に出す）
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    alert("エラーが発生しました。\n" + msg + "\n行: " + lineNo);
-    return false;
-};
-</script>
 <style>
     :root {
-        --bg: #fcfaf2; --text: #2b2b2b; --bar: #fdfdfd; --border: #dcd3b2;
-        --accent: #165e83; --select-bg: #e3eff7; --danger: #b7282e;
+        --bg-paper: #fcfaf2; --text: #2b2b2b; --bar-bg: #fdfdfd; --border: #dcd3b2;
+        --accent: #165e83; --selected: #e3eff7; --danger: #b7282e; --btn-text: #666;
     }
-    body.dark {
-        --bg: #202124; --text: #e8eaed; --bar: #303134; --border: #5f6368;
-        --accent: #8ab4f8; --select-bg: #3c4043; --danger: #f28b82;
+    body.dark-mode {
+        --bg-paper: #202124; --text: #e8eaed; --bar-bg: #303134; --border: #5f6368;
+        --accent: #8ab4f8; --selected: #3c4043; --danger: #f28b82; --btn-text: #aaa;
     }
     body {
-        font-family: "Yu Mincho", serif; background: var(--bg); color: var(--text);
-        margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        font-family: "Yu Mincho", serif; background: var(--bg-paper); color: var(--text);
+        margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
     }
-    button { border: none; background: none; font-family: inherit; cursor: pointer; color: inherit; }
+    /* アイコン(SVG) */
+    .icon { width: 24px; height: 24px; fill: currentColor; vertical-align: middle; }
     
     /* ヘッダー */
     .header {
-        height: 50px; background: var(--bar); border-bottom: 1px solid var(--border);
+        height: 50px; background: var(--bar-bg); border-bottom: 1px solid var(--border);
         display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
+        flex-shrink: 0; z-index: 10;
     }
-    .tabs { background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; display: flex; }
-    .tab { padding: 4px 12px; font-size: 14px; color: #888; border-radius: 4px; }
-    .tab.active { background: var(--bg); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .tabs { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; }
+    .tab {
+        padding: 4px 12px; border: none; background: transparent; color: var(--btn-text); font-size: 14px; cursor: pointer;
+    }
+    .tab.active { background: var(--bg-paper); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     
-    /* メイン */
-    #main { flex: 1; overflow: hidden; position: relative; }
-    #list-view { height: 100%; overflow-y: auto; padding: 10px 10px 60px 10px; }
-    #novel-view { height: 100%; display: none; padding: 10px; }
-    #novel-text { width: 100%; height: 100%; border: none; background: transparent; color: var(--text); font-size: 16px; line-height: 1.8; resize: none; outline: none; }
+    /* メインエリア */
+    #mainArea { flex: 1; overflow: hidden; position: relative; }
+    #listView { height: 100%; overflow-y: auto; padding: 10px 10px 80px 10px; /* 下部に余白 */ -webkit-overflow-scrolling: touch; }
+    #novelView { height: 100%; display: none; padding: 10px 10px 80px 10px; }
+    #novelText { width: 100%; height: 100%; border: none; background: transparent; color: var(--text); font-size: 16px; line-height: 1.8; resize: none; outline: none; }
     
-    /* リスト */
+    /* リストアイテム */
     ul { list-style: none; padding: 0; margin: 0; }
     ul ul { padding-left: 20px; border-left: 1px dashed var(--border); margin-top: 2px; }
     .node { margin-bottom: 4px; }
     .node-content {
-        display: flex; align-items: flex-start; background: var(--bar);
-        border: 1px solid transparent; border-radius: 4px; padding: 6px 4px;
+        display: flex; align-items: flex-start; background: var(--bar-bg);
+        border: 1px solid transparent; border-radius: 4px; padding: 6px 2px;
+        transition: background 0.2s;
     }
-    .node-content.selected { background: var(--select-bg); border-color: var(--accent); }
+    .node-content.selected { background: var(--selected); border-color: var(--accent); }
+    
     textarea.row-text {
         flex: 1; border: none; background: transparent; color: var(--text);
         font-size: 16px; line-height: 1.5; resize: none; outline: none; min-height: 24px;
-        font-family: inherit; padding: 0; margin-left: 5px;
+        font-family: inherit; margin-left: 4px;
     }
     
-    /* フッター */
+    /* フッター（ボタン類） */
     .footer {
-        height: 50px; background: var(--bar); border-top: 1px solid var(--border);
+        height: 50px; background: var(--bar-bg); border-top: 1px solid var(--border);
         display: flex; justify-content: space-around; align-items: center;
+        position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
     }
     .f-btn {
         flex: 1; height: 100%; display: flex; flex-direction: column; 
-        justify-content: center; align-items: center; font-size: 10px; color: #666;
+        justify-content: center; align-items: center; font-size: 10px; 
+        color: var(--btn-text); border: none; background: none; cursor: pointer;
     }
-    .f-icon { font-size: 18px; margin-bottom: 2px; }
-    
-    /* モード切替表示 */
-    .view-select { display: none; width: 100%; background: var(--select-bg); }
-    body.mode-select .view-normal { display: none; }
-    body.mode-select .view-select { display: flex; }
-    
-    /* チェックボックス */
-    .check { display: none; margin-top: 5px; font-size: 14px; color: var(--accent); }
-    body.mode-select .check { display: block; }
+    .f-btn:active { background: rgba(0,0,0,0.05); }
     
     /* メニュー */
     .menu {
-        position: absolute; top: 50px; right: 10px; width: 180px;
-        background: var(--bar); border: 1px solid var(--border);
+        position: absolute; top: 50px; right: 10px; width: 200px;
+        background: var(--bar-bg); border: 1px solid var(--border);
         display: none; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100;
+        border-radius: 8px;
     }
     .menu.show { display: flex; }
-    .menu-item { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .menu-item { padding: 12px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; cursor: pointer; color: var(--text); }
+    
+    /* 選択モード切替 */
+    body.select-mode .f-normal { display: none; }
+    body.select-mode .f-select { display: flex; }
+    body.select-mode .footer { background: var(--selected); border-color: var(--accent); }
+    .f-select { display: none; }
+    
+    .check-circle { 
+        width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; 
+        margin-right: 4px; display: none; flex-shrink: 0; margin-top: 4px;
+    }
+    body.select-mode .check-circle { display: block; }
+    .selected .check-circle { background: var(--accent); border-color: var(--accent); }
+    
+    .drag-handle { padding: 4px; color: var(--border); cursor: grab; touch-action: none; display: flex; align-items: center; }
+    .btn-icon { padding: 8px; color: var(--btn-text); cursor: pointer; display: flex; align-items: center; }
 </style>
 </head>
 <body>
 
 <div class="header">
     <div class="tabs">
-        <button class="tab active" onclick="app.setTab('list')">構成</button>
-        <button class="tab" onclick="app.setTab('novel')">小説</button>
+        <button class="tab active" onclick="setMode('list')">構成</button>
+        <button class="tab" onclick="setMode('novel')">小説</button>
     </div>
-    <div style="font-size:12px; color:#888; margin-right:10px;"><span id="count">0</span>字</div>
-    <button onclick="app.toggleMenu()" style="font-size:20px;">︙</button>
+    <div id="charCount" style="font-size:12px; color:var(--btn-text); margin-right:10px;">0字</div>
+    <div class="btn-icon" onclick="toggleMenu()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
 </div>
 
-<div class="menu" id="menu">
-    <button class="menu-item" onclick="app.toggleDark()">🌙 ダークモード</button>
-    <button class="menu-item" onclick="app.download()">⬇ 保存(DL)</button>
-    <button class="menu-item" onclick="document.getElementById('file').click()">📂 読込</button>
-    <button class="menu-item" onclick="app.reset()" style="color:var(--danger)">🗑 全消去</button>
+<div class="menu" id="mainMenu">
+    <div class="menu-item" onclick="toggleDark()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.06,6.81,6.55,9.37,5.51z"/></svg>
+        <span>ダークモード切替</span>
+    </div>
+    <div class="menu-item" onclick="downloadTxt()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <span>保存 (DL)</span>
+    </div>
+    <div class="menu-item" onclick="importTrigger()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+        <span>ファイル読込</span>
+    </div>
+    <div class="menu-item" onclick="resetData()" style="color:var(--danger)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        <span>全消去</span>
+    </div>
 </div>
 
-<div id="main">
-    <div id="list-view"><ul id="root"></ul></div>
-    <div id="novel-view"><textarea id="novel-text" oninput="app.save()" placeholder="ここに本文を書く..."></textarea></div>
+<div id="mainArea">
+    <div id="listView"><ul id="rootList"></ul></div>
+    <div id="novelView"><textarea id="novelText" oninput="saveNovel()" placeholder="ここで文章を自由に編集..."></textarea></div>
 </div>
 
 <div class="footer">
-    <div class="view-normal" style="display:flex; width:100%;">
-        <button class="f-btn" onclick="app.indent(-1)"><span class="f-icon">⏪</span>字上げ</button>
-        <button class="f-btn" onclick="app.indent(1)"><span class="f-icon">⏩</span>字下げ</button>
-        <button class="f-btn" onclick="app.add()" style="color:var(--accent)"><span class="f-icon">➕</span>追加</button>
-        <button class="f-btn" onclick="app.toggleSelect()"><span class="f-icon">✅</span>選択</button>
+    <div class="f-btn f-normal" onclick="moveIndent(-1)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm10 4H11v-2h10v2z"/></svg>
+        <span>字上げ</span>
     </div>
-    <div class="view-select">
-        <button class="f-btn" onclick="app.move(-1)"><span class="f-icon">⬆</span>上へ</button>
-        <button class="f-btn" onclick="app.move(1)"><span class="f-icon">⬇</span>下へ</button>
-        <button class="f-btn" onclick="app.copy()"><span class="f-icon">📄</span>複製</button>
-        <button class="f-btn" onclick="app.del()" style="color:var(--danger)"><span class="f-icon">🗑</span>削除</button>
-        <button class="f-btn"
+    <div class="f-btn f-normal" onclick="moveIndent(1)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>
+        <span>字下げ</span>
+    </div>
+    <div class="f-btn f-normal" onclick="addNode()" style="color:var(--accent)">
+        <svg class="icon" style="width:32px; height:32px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+    </div>
+    <div class="f-btn f-normal" onclick="toggleSelectMode()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41z"/></svg>
+        <span>選択</span>
+    </div>
+    
+    <div class="f-btn f-select" onclick="moveItem(-1)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
+        <span>上へ</span>
+    </div>
+    <div class="f-btn f-select" onclick="moveItem(1)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
+        <span>下へ</span>
+    </div>
+    <div class="f-btn f-select" onclick="copyItem()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        <span>複製</span>
+    </div>
+    <div class="f-btn f-select" onclick="deleteItem()" style="color:var(--danger)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        <span>削除</span>
+    </div>
+    <div class="f-btn f-select" onclick="toggleSelectMode()" style="font-weight:bold;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+        <span>完了</span>
+    </div>
+</div>
+
+<input type="file" id="fileIn" style="display:none" onchange="loadFile(this)">
+
+<script>
+// ■ 保存システム
+const KEY = 'wafu_editor_v5';
+function loadData() {
+    try {
+        const str = localStorage.getItem(KEY);
+        return str ? JSON.parse(str) : null;
+    } catch (e) { console.error(e); return null; }
+}
+function saveData() {
+    try {
+        const data = {
+            tree: serialize(document.getElementById('rootList')),
+            novel: document.getElementById('novelText').value,
+            mode: currMode,
+            dark: document.body.classList.contains('dark-mode')
+        };
+        localStorage.setItem(KEY, JSON.stringify(data));
+    } catch(e) {}
+}
+
+// ■ コアロジック
+let currMode = 'list';
+let uid = 0;
+
+window.onload = function() {
+    const data = loadData();
+    if (data) {
+        if (data.dark) document.body.classList.add('dark-mode');
+        buildTree(document.getElementById('rootList'), data.tree || []);
+        document.getElementById('novelText').value = data.novel || "";
+        if (data.mode === 'novel') setMode('novel');
+    } else {
+        addNode("和風執筆ノ間へようこそ。");
+        addNode("構成モードで行を入れ替え、");
+        addNode("小説モードで執筆できます。");
+    }
+    updateCount();
+    
+    // メニュー外クリックで閉じる
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu') && !e.target.closest('.btn-icon')) {
+            document.getElementById('mainMenu').classList.remove('show');
+        }
+    });
+};
+
+function addNode(text="", parent=null) {
+    const ul = parent || document.getElementById('rootList');
+    const li = document.createElement('li');
+    li.className = 'node';
+    li.id = 'n' + (uid++);
+    li.innerHTML = `
+        <div class="node-content" onclick="onNodeClick(this)">
+            <div class="check-circle"></div>
+            <div class="drag-handle" ontouchstart="startDrag(event)">
+               <svg class="icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path d="M20 9H4v2h16V9zm0 4H4v2h16v-2z"/></svg>
+            </div>
+            <textarea class="row-text" rows="1" oninput="resize(this);saveData();updateCount()">${esc(text)}</textarea>
+        </div>
+        <ul></ul>
+    `;
+    ul.appendChild(li);
+    const ta = li.querySelector('textarea');
+    ta.value = text; resize(ta);
+    saveData();
+    return li;
+}
+
+// ■ モード切替
+function setMode(mode) {
+    currMode = mode;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelector(mode === 'list' ? 'button:nth-child(1)' : 'button:nth-child(2)').classList.add('active');
+    
+    const listDiv = document.getElementById('listView');
+    const novelDiv = document.getElementById('novelView');
+    const root = document.getElementById('rootList');
+    const novelTa = document.getElementById('novelText');
+    const footer = document.querySelector('.footer');
+
+    if (mode === 'novel') {
+        let txt = "";
+        function traverse(ul, depth) {
+            Array.from(ul.children).forEach(li => {
+                txt += "　".repeat(depth) + li.querySelector('textarea').value + "\n";
+                traverse(li.querySelector('ul'), depth+1);
+            });
+        }
+        traverse(root, 0);
+        novelTa.value = txt;
+        listDiv.style.display = 'none';
+        novelDiv.style.display = 'block';
+        footer.style.display = 'none'; // 小説モードではボタンを隠す
+    } else {
+        root.innerHTML = "";
+        const lines = novelTa.value.split(/\n/);
+        const stack = [{level:-1, ul:root}];
+        lines.forEach(line => {
+            if(!line.trim()) return;
+            const indentMatch = line.match(/^(　|\t|\s)+/);
+            const indent = indentMatch ? indentMatch[0] : "";
+            let level = indent.replace(/　/g,' ').replace(/\t/g,' ').length;
+            if (level > stack[stack.length-1].level + 1) level = stack[stack.length-1].level + 1;
+            while(stack.length > 1 && stack[stack.length-1].level >= level) stack.pop();
+            const li = addNode(line.trim(), stack[stack.length-1].ul);
+            stack.push({level:level, ul:li.querySelector('ul')});
+        });
+        listDiv.style.display = 'block';
+        novelDiv.style.display = 'none';
+        footer.style.display = 'flex';
+    }
+    saveData();
+}
+
+// ■ アクション
+function moveIndent(dir) {
+    const targets = getSelected();
+    const list = targets.length ? targets : [getFocused()];
+    list.forEach(li => {
+        if(!li) return;
+        if(dir===1) {
+            const prev = li.previousElementSibling;
+            if(prev) { prev.querySelector('ul').appendChild(li); }
+        } else {
+            const pLi = li.parentElement.closest('li');
+            if(pLi) { pLi.after(li); }
+        }
+    });
+    saveData();
+}
+
+function moveItem(dir) {
+    const targets = getSelected();
+    if(!targets.length) return;
+    (dir===1 ? targets.reverse() : targets).forEach(li => {
+        if(dir===-1 && li.previousElementSibling) li.parentElement.insertBefore(li, li.previousElementSibling);
+        if(dir===1 && li.nextElementSibling) li.parentElement.insertBefore(li, li.nextElementSibling.nextElementSibling);
+    });
+    saveData();
+}
+
+function startDrag(e) { e.preventDefault(); /* スマホ用ドラッグ無効化(タップ操作推奨) */ }
+
+function getFocused() {
+    const ae = document.activeElement;
+    return ae && ae.classList.contains('row-text') ? ae.closest('li') : null;
+}
+
+function toggleSelectMode() {
+    document.body.classList.toggle('select-mode');
+    document.querySelectorAll('.node-content').forEach(c=>c.classList.remove('selected'));
+}
+function onNodeClick(div) {
+    if(document.body.classList.contains('select-mode')) {
+        div.classList.toggle('selected');
+    }
+}
+function getSelected() {
+    return Array.from(document.querySelectorAll('.node-content.selected')).map(c=>c.closest('li'));
+}
+function deleteItem() {
+    if(!confirm("削除しますか？")) return;
+    getSelected().forEach(li=>li.remove());
+    toggleSelectMode(); saveData();
+}
+function copyItem() {
+    getSelected().forEach(li => {
+        const clone = li.cloneNode(true);
+        refreshId(clone);
+        li.after(clone);
+    });
+    toggleSelectMode(); saveData();
+}
+function refreshId(li) {
+    li.id = 'n'+(uid++);
+    li.querySelector('textarea').value = li.querySelector('textarea').textContent;
+    li.querySelector('.node-content').classList.remove('selected');
+    Array.from(li.querySelector('ul').children).forEach(refreshId);
+}
+
+// ■ ユーティリティ
+function resize(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+function updateCount() {
+    const txt = currMode==='novel' ? document.getElementById('novelText').value : 
+        Array.from(document.querySelectorAll('textarea')).map(t=>t.value).join('');
+    document.getElementById('charCount').innerText = txt.length + "字";
+}
+function toggleMenu() { document.getElementById('mainMenu').classList.toggle('show'); }
+function toggleDark() { document.body.classList.toggle('dark-mode'); saveData(); }
+function resetData() { 
+    if(confirm("全消去しますか？")) { localStorage.removeItem(KEY); location.reload(); }
+}
+function saveNovel() { saveData(); updateCount(); }
+function esc(s) { return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','':'&quot;',"'":'&#039;'}[c])); }
+function serialize(ul) {
+    return Array.from(ul.children).map(li => ({
+        t: li.querySelector('textarea').value,
+        c: serialize(li.querySelector('ul'))
+    }));
+}
+function buildTree(ul, data) {
+    data.forEach(d => {
+        const li = addNode(d.t, ul);
+        buildTree(li.querySelector('ul'), d.c);
+    });
+}
+function downloadTxt() {
+    const txt = currMode==='novel' ? document.getElementById('novelText').value : 
+        (function t(ul,d){return Array.from(ul.children).map(li=>"　".repeat(d)+li.querySelector('textarea').value+"\n"+t(li.querySelector('ul'),d+1)).join('')})(document.getElementById('rootList'),0);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+    a.download = 'novel_draft.txt'; a.click();
+}
+function importTrigger() { document.getElementById('fileIn').click(); }
+function loadFile(inp) {
+    const f = inp.files[0]; if(!f)return;
+    const r = new FileReader();
+    r.onload = e => { document.getElementById('novelText').value = e.target.result; setMode('novel'); };
+    r.readAsText(f);
+}
+</script>
+</body>
+</html>
