@@ -10,6 +10,11 @@
         --accent: #165e83; --selected: #e3eff7; --danger: #b7282e; --btn-text: #666;
         --memo-bg: #f0f0e8; --highlight: #fff3b8;
         --c-red: #ffcdd2; --c-blue: #bbdefb; --c-green: #c8e6c9; --c-yellow: #fff9c4; --c-purple: #e1bee7;
+        
+        /* 高さ定数 */
+        --h-proj: 36px;
+        --h-head: 44px;
+        --h-foot: 50px;
     }
     body.dark-mode {
         --bg-paper: #202124; --text: #e8eaed; --bar-bg: #303134; --border: #5f6368;
@@ -17,18 +22,28 @@
         --memo-bg: #2d2e30; --highlight: #5f6368;
         --c-red: #5c2b2b; --c-blue: #1f3a52; --c-green: #254227; --c-yellow: #4a4218; --c-purple: #3a2342;
     }
+    
+    /* --- アプリ型固定レイアウト --- */
     body {
         font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
         background: var(--bg-paper); color: var(--text);
-        margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; /* 全体スクロール禁止 */
+        position: fixed; /* iOSのバウンス防止 */
     }
     textarea, input, select { font-family: inherit; }
     .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; }
 
-    /* --- プロジェクトタブ --- */
+    /* 上部固定エリア */
+    .top-fixed {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+        background: var(--bar-bg);
+    }
+
+    /* プロジェクトタブ */
     .project-bar {
-        height: 36px; background: var(--bar-bg); border-bottom: 1px solid var(--border);
-        display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px; flex-shrink: 0;
+        height: var(--h-proj); border-bottom: 1px solid var(--border);
+        display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px;
+        box-sizing: border-box;
     }
     .p-tab {
         padding: 6px 12px; font-size: 13px; color: var(--btn-text); border: 1px solid transparent;
@@ -40,11 +55,11 @@
     }
     .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; }
 
-    /* --- ヘッダー --- */
+    /* ヘッダー */
     .header {
-        height: 44px; background: var(--bar-bg); border-bottom: 1px solid var(--border);
+        height: var(--h-head); border-bottom: 1px solid var(--border);
         display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
-        flex-shrink: 0; z-index: 10;
+        box-sizing: border-box;
     }
     .mode-switch { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; }
     .m-btn {
@@ -53,11 +68,30 @@
     .m-btn.active { background: var(--bg-paper); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .count-info { font-size: 10px; color: var(--btn-text); text-align: right; line-height: 1.2; margin-left: 10px; }
     
-    /* --- メインエリア --- */
-    #mainArea { flex: 1; overflow: hidden; position: relative; }
-    #listView { height: 100%; overflow-y: auto; padding: 10px 10px 100px 10px; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
-    #novelView { height: 100%; display: none; padding: 20px 15px 100px 15px; box-sizing: border-box; overflow-y: auto; }
-    #novelText { width: 100%; min-height: 100%; border: none; background: transparent; color: var(--text); font-size: 16px; line-height: 2.0; resize: none; outline: none; }
+    /* --- メインスクロールエリア (絶対配置) --- */
+    #mainArea {
+        position: fixed;
+        top: calc(var(--h-proj) + var(--h-head)); 
+        bottom: var(--h-foot);
+        left: 0; right: 0;
+        overflow: hidden;
+    }
+    /* ラピッドモード時は下が縮むなどの調整はJSで行うか、paddingで逃げる */
+    
+    #listView { 
+        height: 100%; overflow-y: auto; padding: 10px; 
+        box-sizing: border-box; -webkit-overflow-scrolling: touch; 
+        padding-bottom: 80px; /* フッター被り防止 */
+    }
+    #novelView { 
+        height: 100%; display: none; padding: 20px 15px; 
+        box-sizing: border-box; overflow-y: auto; 
+        padding-bottom: 80px; 
+    }
+    #novelText { 
+        width: 100%; min-height: 100%; border: none; background: transparent; 
+        color: var(--text); font-size: 16px; line-height: 2.0; resize: none; outline: none; 
+    }
     #novelText::after { content: ""; display: block; height: 50vh; }
 
     /* --- ノード --- */
@@ -92,15 +126,18 @@
     .memo-input { width: 100%; background: transparent; border: none; outline: none; resize: none; color: inherit; }
     mark { background: var(--highlight); color: inherit; padding: 0 2px; }
 
-    /* --- フッター (通常) --- */
+    /* --- フッター (下部固定) --- */
     .footer {
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+        position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
         background: var(--bar-bg); border-top: 1px solid var(--border);
         padding-bottom: env(safe-area-inset-bottom);
+        height: var(--h-foot);
         box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        display: flex; /* Flex container */
+        display: flex; flex-direction: column; justify-content: flex-end;
     }
-    .toolbar-row { width: 100%; height: 42px; display: flex; justify-content: space-around; align-items: center; }
+    .toolbar-row { 
+        width: 100%; height: var(--h-foot); display: flex; justify-content: space-around; align-items: center; 
+    }
     .f-btn {
         flex: 1; height: 100%; display: flex; flex-direction: column; 
         justify-content: center; align-items: center; font-size: 9px; 
@@ -108,32 +145,33 @@
     }
     .f-btn:active { background: rgba(0,0,0,0.05); }
     
-    /* --- ラピッドモード用バー --- */
+    /* ラピッドバー */
     #rapidBar {
-        display: none; width: 100%; height: 50px; align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
+        display: none; width: 100%; height: var(--h-foot); align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
     }
     .rapid-input {
         flex: 1; height: 36px; border-radius: 18px; border: 1px solid var(--border); 
-        background: var(--bg-paper); color: var(--text); padding: 0 15px; outline: none; margin-right: 8px;
+        background: var(--bg-paper); color: var(--text); padding: 0 15px; outline: none; margin-right: 8px; font-size: 14px;
     }
     .rapid-send {
         width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
-        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
     }
     .rapid-close {
         width: 30px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
-        font-size: 18px; cursor: pointer; margin-left: 5px;
+        font-size: 18px; cursor: pointer; margin-left: 5px; flex-shrink: 0;
     }
 
+    /* モードによる表示切替 */
     body.select-mode .f-normal { display: none; }
     body.select-mode .f-select { display: flex; }
     .f-select { display: none; }
     
-    /* ラピッドモードONのとき */
     body.rapid-mode .toolbar-row { display: none; }
     body.rapid-mode #rapidBar { display: flex; }
-    body.rapid-mode .footer { height: auto; padding-top: 5px; padding-bottom: calc(5px + env(safe-area-inset-bottom)); }
+    /* ラピッドモード時もフッター高さは変わらないが、キーボードが出るので固定位置が重要 */
 
+    /* 選択インジケータ */
     .check-circle { 
         width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; 
         margin-right: 4px; display: none; flex-shrink: 0; margin-top: 4px;
@@ -141,9 +179,9 @@
     body.select-mode .check-circle { display: block; }
     .node-box.selected .check-circle { background: var(--accent); border-color: var(--accent); }
 
-    /* --- パネル共通 --- */
+    /* パネル類 */
     .panel {
-        position: fixed; top: 80px; left: 10px; right: 10px; bottom: 60px;
+        position: fixed; top: 90px; left: 10px; right: 10px; bottom: 70px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; display: none;
         flex-direction: column;
@@ -152,7 +190,6 @@
     .panel-header { padding: 10px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
     .panel-body { flex: 1; overflow-y: auto; padding: 10px; }
     .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px; text-align: center; font-weight: bold;}
-    .panel-body button:active { background: var(--selected); }
     
     .io-options { margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 4px; }
     .io-label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
@@ -160,7 +197,6 @@
     .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
     .btn-group button { flex: 1; margin-bottom: 0; }
 
-    /* メニューポップアップ */
     .menu-popup {
         position: absolute; top: 40px; right: 10px; width: 220px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
@@ -169,29 +205,30 @@
     .menu-popup.show { display: block; }
     .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
     .menu-row:last-child { border-bottom: none; }
-    
     .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
+
 </style>
 </head>
 <body>
 
-<div class="project-bar" id="projectBar">
-    <div class="p-tab active">本編</div>
-    <div class="p-add-btn" onclick="addProject()">＋</div>
-</div>
-
-<div class="header">
-    <div class="mode-switch">
-        <button class="m-btn active" onclick="setMode('list')">構成</button>
-        <button class="m-btn" onclick="setMode('novel')">小説</button>
+<div class="top-fixed">
+    <div class="project-bar" id="projectBar">
+        <div class="p-tab active">本編</div>
+        <div class="p-add-btn" onclick="addProject()">＋</div>
     </div>
-    <div style="flex:1"></div>
-    <div class="count-info" id="countInfo">全: 0<br>選: 0</div>
-    <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    </div>
-    <div class="f-btn" onclick="toggleMenu()" style="width:40px;">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    <div class="header">
+        <div class="mode-switch">
+            <button class="m-btn active" onclick="setMode('list')">構成</button>
+            <button class="m-btn" onclick="setMode('novel')">小説</button>
+        </div>
+        <div style="flex:1"></div>
+        <div class="count-info" id="countInfo">全: 0<br>選: 0</div>
+        <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </div>
+        <div class="f-btn" onclick="toggleMenu()" style="width:40px;">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </div>
     </div>
 </div>
 
@@ -234,7 +271,7 @@
                 <label><input type="checkbox" id="exCodeBlock"> コードブロック (```) 付与</label>
             </div>
         </div>
-        <h4>アクション (TXT形式)</h4>
+        <h4>アクション</h4>
         <div class="btn-group">
             <button onclick="copyToClipboard()">📋 コピー</button>
             <button onclick="shareText()">🚀 共有</button>
@@ -408,14 +445,16 @@ function setMode(mode) {
     document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector(mode==='list'?'.m-btn:nth-child(1)':'.m-btn:nth-child(2)').classList.add('active');
     const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), ft=document.querySelector('.footer');
-    
-    // ラピッドモード解除
     document.body.classList.remove('rapid-mode');
 
     if(mode==='novel') {
         let txt=""; function tr(ul,d){Array.from(ul.children).forEach(li=>{txt+="　".repeat(d)+li.querySelector('.row-text').value+"\n";tr(li.querySelector('ul'),d+1)})}
         tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
-        lv.style.display='none'; nv.style.display='block'; ft.style.display='none';
+        lv.style.display='none'; nv.style.display='block'; 
+        // 小説モードでは通常フッターは隠すが、ラピッドモードは使えるようにする
+        ft.style.display='flex'; 
+        document.querySelector('.toolbar-row').style.display = 'none'; // 通常ツールバーを隠す
+        // ラピッド起動ボタンだけは欲しい…が、メニューから起動するのでOK
     } else {
         const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
         const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
@@ -426,35 +465,46 @@ function setMode(mode) {
             const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
         });
         lv.style.display='block'; nv.style.display='none'; ft.style.display='flex';
+        document.querySelector('.toolbar-row').style.display = 'flex';
     }
     updateCount();
 }
 
 /* ラピッドモード */
 function toggleRapidMode() {
-    // 構成モードのみ有効
-    if(currentMode !== 'list') { setMode('list'); }
+    // 小説モードでもラピッドは有効にする
     document.body.classList.toggle('rapid-mode');
     document.getElementById('mainMenu').classList.remove('show');
     if(document.body.classList.contains('rapid-mode')) {
         document.getElementById('rapidInput').focus();
+        document.querySelector('.footer').style.display = 'flex'; // フッター強制表示
+    } else {
+        // ラピッド終了時、小説モードならフッター（通常ツールバー）を隠す必要がある
+        if(currentMode === 'novel') {
+             document.querySelector('.toolbar-row').style.display = 'none';
+             // document.querySelector('.footer').style.display = 'none'; // ※メニューボタンも消えるので枠だけ残すか？いや、メニューは上にある
+             // 小説モードは「書く」ことに集中するためフッターなしがデフォルト
+        }
     }
 }
-function checkRapidEnter(e) {
-    if(e.key === 'Enter') submitRapid();
-}
+function checkRapidEnter(e) { if(e.key === 'Enter') submitRapid(); }
 function submitRapid() {
     const input = document.getElementById('rapidInput');
     const val = input.value;
     if(!val.trim()) return;
-    
-    // 現在のリストの最後に追加
-    const li = addNode(val, null);
-    li.scrollIntoView({behavior:"smooth", block:"center"});
+
+    if(currentMode === 'list') {
+        const li = addNode(val, null);
+        li.scrollIntoView({behavior:"smooth", block:"center"});
+    } else {
+        // 小説モード：末尾に追記
+        const ta = document.getElementById('novelText');
+        ta.value += (ta.value ? "\n" : "") + val;
+        // スクロール
+        ta.scrollTop = ta.scrollHeight;
+    }
     pushHistory();
-    input.value = "";
-    // フォーカス維持
-    input.focus();
+    input.value = ""; input.focus();
 }
 
 /* アクション */
