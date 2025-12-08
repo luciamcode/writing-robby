@@ -92,58 +92,54 @@
     .memo-input { width: 100%; background: transparent; border: none; outline: none; resize: none; color: inherit; }
     mark { background: var(--highlight); color: inherit; padding: 0 2px; }
 
-    /* --- フッター --- */
+    /* --- フッター (通常) --- */
     .footer {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
         background: var(--bar-bg); border-top: 1px solid var(--border);
         padding-bottom: env(safe-area-inset-bottom);
         box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
+        display: flex; /* Flex container */
     }
-    .toolbar-row { height: 42px; display: flex; justify-content: space-around; align-items: center; }
+    .toolbar-row { width: 100%; height: 42px; display: flex; justify-content: space-around; align-items: center; }
     .f-btn {
         flex: 1; height: 100%; display: flex; flex-direction: column; 
         justify-content: center; align-items: center; font-size: 9px; 
-        color: var(--btn-text); border: none; background: none; cursor: pointer; user-select: none;
+        color: var(--btn-text); border: none; background: none; cursor: pointer;
     }
     .f-btn:active { background: rgba(0,0,0,0.05); }
     
+    /* --- ラピッドモード用バー --- */
+    #rapidBar {
+        display: none; width: 100%; height: 50px; align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
+    }
+    .rapid-input {
+        flex: 1; height: 36px; border-radius: 18px; border: 1px solid var(--border); 
+        background: var(--bg-paper); color: var(--text); padding: 0 15px; outline: none; margin-right: 8px;
+    }
+    .rapid-send {
+        width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
+        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .rapid-close {
+        width: 30px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
+        font-size: 18px; cursor: pointer; margin-left: 5px;
+    }
+
     body.select-mode .f-normal { display: none; }
     body.select-mode .f-select { display: flex; }
     .f-select { display: none; }
     
+    /* ラピッドモードONのとき */
+    body.rapid-mode .toolbar-row { display: none; }
+    body.rapid-mode #rapidBar { display: flex; }
+    body.rapid-mode .footer { height: auto; padding-top: 5px; padding-bottom: calc(5px + env(safe-area-inset-bottom)); }
+
     .check-circle { 
         width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; 
         margin-right: 4px; display: none; flex-shrink: 0; margin-top: 4px;
     }
     body.select-mode .check-circle { display: block; }
     .node-box.selected .check-circle { background: var(--accent); border-color: var(--accent); }
-
-    /* --- ラピッドモード (チャット風入力) --- */
-    .rapid-bar {
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
-        background: var(--bar-bg); border-top: 1px solid var(--accent);
-        padding: 8px; padding-bottom: max(8px, env(safe-area-inset-bottom));
-        display: none; align-items: flex-end; gap: 8px;
-        box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
-    }
-    .rapid-bar.show { display: flex; }
-    
-    .rapid-close {
-        padding: 8px; color: var(--btn-text); cursor: pointer; font-size: 20px; line-height: 1;
-    }
-    #rapidInput {
-        flex: 1; background: var(--bg-paper); color: var(--text); border: 1px solid var(--border);
-        border-radius: 18px; padding: 8px 12px; font-size: 16px; outline: none; resize: none;
-        max-height: 100px; line-height: 1.4;
-    }
-    .rapid-send {
-        width: 40px; height: 40px; background: var(--accent); color: #fff;
-        border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        cursor: pointer; flex-shrink: 0;
-    }
-    /* ラピッドモード時はフッターを隠す */
-    body.rapid-mode .footer { transform: translateY(100%); }
 
     /* --- パネル共通 --- */
     .panel {
@@ -155,4 +151,436 @@
     .panel.show { display: flex; }
     .panel-header { padding: 10px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
     .panel-body { flex: 1; overflow-y: auto; padding: 10px; }
-    .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px;
+    .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px; text-align: center; font-weight: bold;}
+    .panel-body button:active { background: var(--selected); }
+    
+    .io-options { margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 4px; }
+    .io-label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+    .radio-group label { margin-right: 15px; font-size: 14px; cursor: pointer; }
+    .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
+    .btn-group button { flex: 1; margin-bottom: 0; }
+
+    /* メニューポップアップ */
+    .menu-popup {
+        position: absolute; top: 40px; right: 10px; width: 220px;
+        background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 101; display: none;
+    }
+    .menu-popup.show { display: block; }
+    .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .menu-row:last-child { border-bottom: none; }
+    
+    .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="project-bar" id="projectBar">
+    <div class="p-tab active">本編</div>
+    <div class="p-add-btn" onclick="addProject()">＋</div>
+</div>
+
+<div class="header">
+    <div class="mode-switch">
+        <button class="m-btn active" onclick="setMode('list')">構成</button>
+        <button class="m-btn" onclick="setMode('novel')">小説</button>
+    </div>
+    <div style="flex:1"></div>
+    <div class="count-info" id="countInfo">全: 0<br>選: 0</div>
+    <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    </div>
+    <div class="f-btn" onclick="toggleMenu()" style="width:40px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
+</div>
+
+<div class="menu-popup" id="mainMenu">
+    <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
+    <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
+    <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
+    <div class="menu-row" onclick="toggleImportExport()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+        保存/連携/読込
+    </div>
+    <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
+</div>
+
+<div class="panel" id="searchPanel">
+    <div class="panel-header"><span>検索</span><span onclick="toggleSearch()">✕</span></div>
+    <div style="padding:10px; border-bottom:1px solid var(--border);">
+        <input type="text" id="searchInput" placeholder="検索ワード (正規表現可)" style="width:100%; padding:8px; box-sizing:border-box;">
+        <div style="margin-top:5px; text-align:right;">
+            <button onclick="runSearch()" style="width:auto; display:inline-block;">実行</button>
+        </div>
+    </div>
+    <div class="panel-body" id="searchResultList"></div>
+    <div style="padding:10px; border-top:1px solid var(--border); text-align:center;">
+        <button onclick="toggleSearch(); toggleImportExport();" style="width:100%">検索結果をエクスポートへ</button>
+    </div>
+</div>
+
+<div class="panel" id="ioPanel">
+    <div class="panel-header"><span>保存・連携・読込</span><span onclick="toggleImportExport()">✕</span></div>
+    <div class="panel-body">
+        <div class="io-options">
+            <span class="io-label">対象範囲</span>
+            <div class="radio-group">
+                <label><input type="radio" name="exScope" value="all" checked> 全体</label>
+                <label><input type="radio" name="exScope" value="visible"> 表示中のみ</label>
+                <label><input type="radio" name="exScope" value="selected"> 選択中のみ</label>
+            </div>
+            <div style="margin-top:8px;">
+                <label><input type="checkbox" id="exCodeBlock"> コードブロック (```) 付与</label>
+            </div>
+        </div>
+        <h4>アクション (TXT形式)</h4>
+        <div class="btn-group">
+            <button onclick="copyToClipboard()">📋 コピー</button>
+            <button onclick="shareText()">🚀 共有</button>
+        </div>
+        <button onclick="exportData('txt')">💾 ファイル保存 (.txt)</button>
+        <button onclick="exportData('md')">MD保存 (.md)</button>
+        <button onclick="exportData('opml')">OPML保存 (.opml)</button>
+        <hr>
+        <h4>インポート</h4>
+        <button onclick="importFromClipboard()">📋 クリップボードから読込</button>
+        <input type="file" id="fileInput" onchange="importFile(this)" style="margin-top:5px;">
+    </div>
+</div>
+
+<div class="panel" id="tplPanel">
+    <div class="panel-header"><span>テンプレート</span><span onclick="toggleTemplate()">✕</span></div>
+    <div class="panel-body">
+        <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
+        <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
+        <div class="search-item" onclick="insertTemplate('……\n　　　******\n……')">場面転換（アスタリスク）</div>
+    </div>
+</div>
+
+<div id="mainArea">
+    <div id="listView"><ul id="rootList"></ul></div>
+    <div id="novelView"><textarea id="novelText" oninput="handleNovelInput()" onclick="handleNovelInput()"></textarea></div>
+</div>
+
+<div class="footer">
+    <div class="toolbar-row">
+        <div class="f-btn" onclick="undo()" style="flex:0.6"><svg class="icon" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>戻す</div>
+        <div class="f-btn" onclick="redo()" style="flex:0.6"><svg class="icon" viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>進む</div>
+        <div style="width:1px; background:var(--border); height:60%;"></div>
+        <div class="f-btn f-normal" onclick="moveIndent(-1)"><svg class="icon" viewBox="0 0 24 24"><path d="M11 17h10v-2H11v2zm-8-5l4 4V8l-4 4zm0 9h18v-2H3v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm10 4H11v-2h10v2z"/></svg>字上げ</div>
+        <div class="f-btn f-normal" onclick="moveIndent(1)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>字下げ</div>
+        <div class="f-btn f-normal" onclick="addNode()" style="color:var(--accent)"><svg class="icon" style="width:28px;height:28px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg></div>
+        <div class="f-btn f-normal" onclick="toggleSelectMode()"><svg class="icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41z"/></svg>選択</div>
+        <div class="f-btn f-select" onclick="moveItem(-1)">⬆ 移動</div>
+        <div class="f-btn f-select" onclick="moveItem(1)">⬇ 移動</div>
+        <div class="f-btn f-select" onclick="mergeNodes()">🔗 結合</div>
+        <div class="f-btn f-select" onclick="setNodeColorMenu()">🎨 色</div>
+        <div class="f-btn f-select" onclick="deleteItem()" style="color:var(--danger)">🗑 削除</div>
+        <div class="f-btn f-select" onclick="toggleSelectMode()" style="font-weight:bold;">✔ 完了</div>
+    </div>
+    
+    <div id="rapidBar">
+        <input type="text" id="rapidInput" class="rapid-input" placeholder="Rapid Fire Mode..." onkeydown="checkRapidEnter(event)">
+        <button class="rapid-send" onclick="submitRapid()">
+            <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+        <button class="rapid-close" onclick="toggleRapidMode()">×</button>
+    </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'wafu_v3_projects';
+let projects = [];
+let currentProjectId = null;
+let currentMode = 'list';
+let undoStack = [], redoStack = [];
+let uidCounter = 0;
+
+window.onload = () => {
+    loadProjects();
+    if (projects.length === 0) createProject("本編");
+    switchProject(projects[0].id);
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu-popup') && !e.target.closest('.f-btn') && !e.target.closest('.icon')) {
+            document.getElementById('mainMenu').classList.remove('show');
+        }
+    });
+};
+
+/* プロジェクト管理 */
+function loadProjects() { try { const str = localStorage.getItem(STORAGE_KEY); if (str) projects = JSON.parse(str); } catch(e) {} }
+function saveProjects() {
+    if (currentProjectId) {
+        const p = projects.find(p => p.id === currentProjectId);
+        if (p) {
+            p.tree = serializeTree(document.getElementById('rootList'));
+            p.novel = document.getElementById('novelText').value;
+            p.mode = currentMode;
+        }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+function createProject(name) {
+    const newId = 'proj_' + Date.now();
+    projects.push({ id: newId, name: name, tree: [{text: "新規プロジェクト", children:[]}], novel: "", mode: 'list' });
+    saveProjects(); renderTabs();
+    if (projects.length === 1) switchProject(newId);
+}
+function addProject() { const name = prompt("タブ名:", "新規"); if (name) createProject(name); }
+function renderTabs() {
+    const bar = document.getElementById('projectBar'); const addBtn = bar.querySelector('.p-add-btn');
+    bar.innerHTML = '';
+    projects.forEach(p => {
+        const div = document.createElement('div'); div.className = `p-tab ${p.id === currentProjectId ? 'active' : ''}`;
+        div.innerText = p.name; div.onclick = () => switchProject(p.id); bar.appendChild(div);
+    });
+    bar.appendChild(addBtn);
+}
+function switchProject(id) {
+    if (currentProjectId === id) return; saveProjects();
+    currentProjectId = id; const p = projects.find(p => p.id === id);
+    undoStack = []; redoStack = [];
+    document.getElementById('rootList').innerHTML = '';
+    buildTree(document.getElementById('rootList'), p.tree);
+    document.getElementById('novelText').value = p.novel || "";
+    setMode(p.mode || 'list'); renderTabs(); pushHistory();
+}
+function resetProject() {
+    if (!confirm("削除しますか？")) return;
+    projects = projects.filter(p => p.id !== currentProjectId);
+    if (projects.length === 0) createProject("新規");
+    switchProject(projects[0].id); saveProjects();
+}
+
+/* Undo/Redo */
+function pushHistory() {
+    const s = { tree: serializeTree(document.getElementById('rootList')), novel: document.getElementById('novelText').value, mode: currentMode };
+    if (undoStack.length > 0 && JSON.stringify(undoStack[undoStack.length-1]) === JSON.stringify(s)) return;
+    undoStack.push(s); if(undoStack.length>50) undoStack.shift(); redoStack=[]; saveProjects(); updateCount();
+}
+function undo() { if(undoStack.length<=1)return; redoStack.push(undoStack.pop()); restoreSnapshot(undoStack[undoStack.length-1]); }
+function redo() { if(redoStack.length===0)return; const n=redoStack.pop(); undoStack.push(n); restoreSnapshot(n); }
+function restoreSnapshot(s) {
+    document.getElementById('rootList').innerHTML=''; buildTree(document.getElementById('rootList'), s.tree);
+    document.getElementById('novelText').value=s.novel; if(currentMode!==s.mode) setMode(s.mode);
+    saveProjects(); updateCount();
+}
+
+/* DOM操作 */
+function generateId() { return 'n' + (++uidCounter); }
+function addNode(text="", parentUl=null, color="", memo="") {
+    const ul = parentUl || document.getElementById('rootList');
+    const li = document.createElement('li'); li.className = 'node'; li.id = generateId();
+    li.innerHTML = `
+        <div class="node-box" data-color="${color}">
+            <div class="node-content" onclick="handleNodeClick(this)">
+                <div class="check-circle"></div>
+                <div style="padding:4px;color:#ccc;cursor:grab;" ontouchstart="preventDrag(event)">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                </div>
+                <textarea class="row-text" rows="1" oninput="resize(this);updateCount()" onblur="pushHistory()">${escapeHtml(text)}</textarea>
+                <div style="padding:4px;color:#ccc;" onclick="toggleMemo(this)">
+                    <svg class="icon" style="width:16px;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </div>
+            </div>
+            <div class="node-memo ${memo?'show':''}"><textarea class="memo-input" placeholder="メモ..." oninput="pushHistory()">${escapeHtml(memo)}</textarea></div>
+        </div><ul></ul>`;
+    ul.appendChild(li); resize(li.querySelector('.row-text')); return li;
+}
+function preventDrag(e){e.preventDefault();}
+function buildTree(ul, data) {
+    data.forEach(d => { const li = addNode(d.text, ul, d.color, d.memo); if(d.children) buildTree(li.querySelector('ul'), d.children); });
+}
+function serializeTree(ul) {
+    return Array.from(ul.children).map(li => ({
+        text: li.querySelector('.row-text').value,
+        color: li.querySelector('.node-box').getAttribute('data-color')||"",
+        memo: li.querySelector('.memo-input').value,
+        children: serializeTree(li.querySelector('ul'))
+    }));
+}
+function resize(ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+
+/* モード切替 */
+function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector(mode==='list'?'.m-btn:nth-child(1)':'.m-btn:nth-child(2)').classList.add('active');
+    const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), ft=document.querySelector('.footer');
+    
+    // ラピッドモード解除
+    document.body.classList.remove('rapid-mode');
+
+    if(mode==='novel') {
+        let txt=""; function tr(ul,d){Array.from(ul.children).forEach(li=>{txt+="　".repeat(d)+li.querySelector('.row-text').value+"\n";tr(li.querySelector('ul'),d+1)})}
+        tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
+        lv.style.display='none'; nv.style.display='block'; ft.style.display='none';
+    } else {
+        const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
+        const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
+        lines.forEach(line=>{
+            if(!line.trim())return; const idt=(line.match(/^(　|\t|\s)+/)||[ ""])[0].replace(/　/g,' ').replace(/\t/g,' ').length;
+            let l=idt; if(l>stack[stack.length-1].l+1)l=stack[stack.length-1].l+1;
+            while(stack.length>1 && stack[stack.length-1].l>=l)stack.pop();
+            const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
+        });
+        lv.style.display='block'; nv.style.display='none'; ft.style.display='flex';
+    }
+    updateCount();
+}
+
+/* ラピッドモード */
+function toggleRapidMode() {
+    // 構成モードのみ有効
+    if(currentMode !== 'list') { setMode('list'); }
+    document.body.classList.toggle('rapid-mode');
+    document.getElementById('mainMenu').classList.remove('show');
+    if(document.body.classList.contains('rapid-mode')) {
+        document.getElementById('rapidInput').focus();
+    }
+}
+function checkRapidEnter(e) {
+    if(e.key === 'Enter') submitRapid();
+}
+function submitRapid() {
+    const input = document.getElementById('rapidInput');
+    const val = input.value;
+    if(!val.trim()) return;
+    
+    // 現在のリストの最後に追加
+    const li = addNode(val, null);
+    li.scrollIntoView({behavior:"smooth", block:"center"});
+    pushHistory();
+    input.value = "";
+    // フォーカス維持
+    input.focus();
+}
+
+/* アクション */
+function toggleSelectMode() { document.body.classList.toggle('select-mode'); document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected')); }
+function handleNodeClick(c) { if(document.body.classList.contains('select-mode')){ c.parentElement.classList.toggle('selected'); updateCount(); } }
+function getSel() { return Array.from(document.querySelectorAll('.node-box.selected')).map(b=>b.closest('li')); }
+function moveIndent(d) {
+    const t=getSel().length?getSel():[getFocusedLi()];
+    t.forEach(li=>{ if(!li)return; if(d===1){const p=li.previousElementSibling;if(p){p.querySelector('ul').appendChild(li);}}else{const p=li.parentElement.closest('li');if(p)p.after(li);} }); pushHistory();
+}
+function moveItem(d) {
+    const t=getSel(); if(!t.length)return;
+    (d===1?t.reverse():t).forEach(li=>{ if(d===-1&&li.previousElementSibling)li.parentElement.insertBefore(li,li.previousElementSibling); if(d===1&&li.nextElementSibling)li.parentElement.insertBefore(li,li.nextElementSibling.nextElementSibling); }); pushHistory();
+}
+function deleteItem() { const t=getSel(); if(!t.length||!confirm(`${t.length}件削除？`))return; t.forEach(li=>li.remove()); toggleSelectMode(); pushHistory(); }
+function mergeNodes() {
+    const t=getSel(); if(t.length<2){alert("2つ以上選択してください");return;}
+    const f=t[0]; let txt=f.querySelector('.row-text').value;
+    for(let i=1;i<t.length;i++){ txt+="\n"+t[i].querySelector('.row-text').value; Array.from(t[i].querySelector('ul').children).forEach(k=>f.querySelector('ul').appendChild(k)); t[i].remove(); }
+    f.querySelector('.row-text').value=txt; resize(f.querySelector('.row-text')); toggleSelectMode(); pushHistory();
+}
+function setNodeColorMenu() {
+    const t=getSel(); if(!t.length)return;
+    const c=prompt("色(red,blue,green,yellow,purple,空白):", "red");
+    t.forEach(li=>li.querySelector('.node-box').setAttribute('data-color',c)); toggleSelectMode(); pushHistory();
+}
+function toggleMemo(b) { b.closest('.node-box').querySelector('.node-memo').classList.toggle('show'); }
+function toggleSearch() { document.getElementById('searchPanel').classList.toggle('show'); if(document.getElementById('searchPanel').classList.contains('show'))document.getElementById('searchInput').focus(); }
+function runSearch() {
+    const q=document.getElementById('searchInput').value, lst=document.getElementById('searchResultList'); lst.innerHTML='';
+    document.querySelectorAll('.node').forEach(n=>n.classList.remove('hidden')); 
+    if(!q)return;
+    try {
+        const re=new RegExp(q);
+        document.querySelectorAll('.node').forEach(n => {
+            const txt = n.querySelector('.row-text').value;
+            if(!re.test(txt)) n.classList.add('hidden'); 
+        });
+        document.querySelectorAll('.node:not(.hidden)').forEach(n => {
+            let p = n.parentElement.closest('.node');
+            while(p) { p.classList.remove('hidden'); p=p.parentElement.closest('.node'); }
+        });
+        document.querySelectorAll('.row-text').forEach(ta => {
+             if(!ta.closest('.node').classList.contains('hidden')) {
+                 const d=document.createElement('div'); d.className='search-item';
+                 d.innerText=ta.value.substring(0,30)+"...";
+                 d.onclick=()=>{ 
+                     ta.scrollIntoView({behavior:"smooth",block:"center"}); 
+                     ta.parentElement.style.background="#fff3b8"; setTimeout(()=>ta.parentElement.style.background="",2000); 
+                     toggleSearch(); 
+                 };
+                 lst.appendChild(d);
+             }
+        });
+    } catch(e){alert("正規表現エラー");}
+}
+function toggleTemplate() { document.getElementById('tplPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
+function insertTemplate(t) {
+    if(currentMode==='list'){const li=addNode(t,null); li.scrollIntoView();}
+    else{const ta=document.getElementById('novelText'); const p=ta.selectionStart; ta.value=ta.value.slice(0,p)+t+ta.value.slice(p);}
+    toggleTemplate(); pushHistory();
+}
+function updateCount() {
+    let t=0,s=0;
+    if(currentMode==='novel'){const ta=document.getElementById('novelText'); t=ta.value.length; s=ta.selectionEnd-ta.selectionStart;}
+    else{document.querySelectorAll('.row-text').forEach(x=>t+=x.value.length); getSel().forEach(li=>s+=li.querySelector('.row-text').value.length);}
+    document.getElementById('countInfo').innerHTML=`全:${t}<br>選:${s}`;
+}
+function handleNovelInput(){updateCount();}
+function toggleDark(){document.body.classList.toggle('dark-mode');}
+function toggleMenu(){document.getElementById('mainMenu').classList.toggle('show');}
+function getFocusedLi(){const ae=document.activeElement; return (ae&&ae.classList.contains('row-text'))?ae.closest('li'):null;}
+function escapeHtml(s){if(!s)return"";return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','':'&quot;',"'":'&#039;'}[c]));}
+
+/* 保存・連携 */
+function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
+function getExportContent() {
+    const scope = document.querySelector('input[name="exScope"]:checked').value;
+    const isCode = document.getElementById('exCodeBlock').checked;
+    let content = "";
+    if (currentMode === 'novel') { content = document.getElementById('novelText').value; } else {
+        function traverse(ul, depth) {
+            let s = "";
+            Array.from(ul.children).forEach(li => {
+                if (scope === 'visible' && (li.classList.contains('hidden') || li.offsetParent === null)) return;
+                if (scope === 'selected' && !li.querySelector('.node-box').classList.contains('selected')) return;
+                s += "　".repeat(depth) + li.querySelector('.row-text').value + "\n";
+                s += traverse(li.querySelector('ul'), depth + 1);
+            });
+            return s;
+        }
+        if (scope === 'selected') {
+            const sel = getSel(); if(!sel.length){alert("選択なし");return "";}
+            sel.forEach(li=>{ content+=li.querySelector('.row-text').value+"\n"; });
+        } else { content = traverse(document.getElementById('rootList'), 0); }
+    }
+    if (isCode) content = "```\n" + content + "\n```";
+    return content;
+}
+function copyToClipboard() { navigator.clipboard.writeText(getExportContent()).then(()=>alert("コピーしました")).catch(e=>alert(e)); }
+function shareText() { if(navigator.share){navigator.share({title:'執筆ノ間',text:getExportContent()});}else{alert("共有未対応ブラウザです");} }
+function exportData(type) {
+    let c = getExportContent(); if(!c && type!=='opml') return;
+    if(type==='md'){
+        c = c.split('\n').map(l=>{const m=l.match(/^(　+)(.*)/);return m?"  ".repeat(m[1].length)+"- "+m[2]:(l?"- "+l:"");}).join('\n');
+    } else if(type==='opml'){
+        c=`<?xml version="1.0"?><opml version="2.0"><head><title>Export</title></head><body>`;
+        function tr(ul){let s="";Array.from(ul.children).forEach(li=>{if(li.classList.contains('hidden'))return;s+=`<outline text="${escapeHtml(li.querySelector('.row-text').value)}">`+tr(li.querySelector('ul'))+`</outline>`;});return s;}
+        c+=tr(document.getElementById('rootList'))+`</body></opml>`;
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c],{type:"text/plain"})); a.download = `export.${type}`; a.click();
+}
+function importFromClipboard() {
+    navigator.clipboard.readText().then(t=>{ if(!t)return; document.getElementById('novelText').value=t; setMode('novel'); alert("貼付完了"); toggleImportExport(); });
+}
+function importFile(input) {
+    const f=input.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+        const t=e.target.result;
+        if(t.trim().startsWith("<?xml")){try{const i=parseOpml(t);document.getElementById('rootList').innerHTML="";buildTree(document.getElementById('rootList'),i);currentMode='list';document.querySelector('.m-btn:nth-child(1)').click();}catch(e){alert("Error");}}
+        else{document.getElementById('novelText').value=t.replace(/^(\s*)[-*+]\s+/gm,(m,p)=>p+"");setMode('novel');setMode('list');}
+        pushHistory(); toggleImportExport();
+    }; r.readAsText(f);
+}
+function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
+</script>
+</body>
+</html>
