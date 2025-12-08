@@ -11,7 +11,6 @@
         --memo-bg: #f0f0e8; --highlight: #fff3b8;
         --c-red: #ffcdd2; --c-blue: #bbdefb; --c-green: #c8e6c9; --c-yellow: #fff9c4; --c-purple: #e1bee7;
         
-        /* 高さ定数 */
         --h-proj: 36px;
         --h-head: 44px;
         --h-foot: 50px;
@@ -23,25 +22,22 @@
         --c-red: #5c2b2b; --c-blue: #1f3a52; --c-green: #254227; --c-yellow: #4a4218; --c-purple: #3a2342;
     }
     
-    /* --- アプリ型固定レイアウト --- */
     html { height: 100%; overflow: hidden; }
     body {
         font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
         background: var(--bg-paper); color: var(--text);
         margin: 0; padding: 0; width: 100%; 
-        height: 100dvh; /* キーボード出現時に動的に高さが変わる */
-        display: flex; flex-direction: column; /* 縦並びレイアウト */
-        overflow: hidden; /* 全体スクロール禁止 */
+        height: 100dvh; display: flex; flex-direction: column; overflow: hidden;
     }
     
     textarea, input, select { font-family: inherit; }
     .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; }
 
-    /* 1. 上部エリア (固定長) */
-    .top-area { flex: 0 0 auto; z-index: 10; background: var(--bar-bg); border-bottom: 1px solid var(--border); }
+    /* 1. 上部エリア */
+    .top-area { flex: 0 0 auto; z-index: 10; background: var(--bar-bg); border-bottom: 1px solid var(--border); width: 100%; }
 
     .project-bar {
-        height: 36px; display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px; border-bottom: 1px solid var(--border);
+        height: var(--h-proj); display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px; border-bottom: 1px solid var(--border);
     }
     .p-tab {
         padding: 6px 12px; font-size: 13px; color: var(--btn-text); border: 1px solid transparent;
@@ -54,7 +50,7 @@
     .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; }
 
     .header {
-        height: 44px; display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
+        height: var(--h-head); display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
     }
     .mode-switch { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; }
     .m-btn {
@@ -63,34 +59,28 @@
     .m-btn.active { background: var(--bg-paper); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .count-info { font-size: 10px; color: var(--btn-text); text-align: right; line-height: 1.2; margin-left: 10px; }
 
-    /* 2. メインエリア (可変長・スクロール) */
+    /* 2. メインエリア */
     #mainArea {
-        flex: 1 1 auto; /* 残りの高さを全て使う */
-        overflow: hidden; position: relative;
-        display: flex; flex-direction: column;
+        flex: 1 1 auto; overflow: hidden; position: relative; display: flex; flex-direction: column; width: 100%;
     }
-    
     #listView, #novelView {
-        flex: 1; overflow-y: auto; padding: 10px;
-        -webkit-overflow-scrolling: touch; box-sizing: border-box;
+        flex: 1; overflow-y: auto; padding: 10px; -webkit-overflow-scrolling: touch; box-sizing: border-box;
     }
     #novelView { padding: 15px; }
-    
     #novelText { 
         width: 100%; height: 100%; border: none; background: transparent; 
         color: var(--text); font-size: 16px; line-height: 2.0; resize: none; outline: none; 
     }
-    /* スクロール余白 */
     #novelText::after, #listView::after { content: ""; display: block; height: 100px; }
 
-    /* 3. フッター (固定長) */
+    /* 3. フッター */
     .footer {
-        flex: 0 0 auto; z-index: 10;
+        flex: 0 0 auto; z-index: 10; width: 100%;
         background: var(--bar-bg); border-top: 1px solid var(--border);
         padding-bottom: env(safe-area-inset-bottom);
-        min-height: 50px;
+        min-height: var(--h-foot);
     }
-    .toolbar-row { height: 50px; display: flex; justify-content: space-around; align-items: center; }
+    .toolbar-row { height: var(--h-foot); display: flex; justify-content: space-around; align-items: center; width: 100%; }
     .f-btn {
         flex: 1; height: 100%; display: flex; flex-direction: column; 
         justify-content: center; align-items: center; font-size: 9px; 
@@ -98,9 +88,11 @@
     }
     .f-btn:active { background: rgba(0,0,0,0.05); }
 
-    /* ラピッドバー */
+    /* ラピッドバー (修正版) */
     #rapidBar {
-        display: none; height: 50px; align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
+        display: none; height: var(--h-foot); align-items: center; 
+        padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
+        width: 100%; /* 横幅いっぱいにする */
     }
     .rapid-input {
         flex: 1; height: 36px; border-radius: 18px; border: 1px solid var(--border); 
@@ -111,11 +103,11 @@
         border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
     }
     .rapid-close {
-        width: 30px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
-        font-size: 24px; cursor: pointer; margin-left: 5px; flex-shrink: 0; line-height: 1;
+        width: 36px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
+        font-size: 24px; cursor: pointer; margin-left: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
     }
 
-    /* ノードスタイル */
+    /* ノード */
     ul { list-style: none; padding: 0; margin: 0; }
     ul ul { padding-left: 20px; border-left: 1px dashed var(--border); margin-top: 2px; }
     .node { margin-bottom: 6px; }
@@ -144,7 +136,6 @@
     .node-memo.show { display: block; }
     .memo-input { width: 100%; background: transparent; border: none; outline: none; resize: none; color: inherit; }
     
-    /* モード制御 */
     body.select-mode .f-normal { display: none; }
     body.select-mode .f-select { display: flex; }
     .f-select { display: none; }
@@ -159,12 +150,10 @@
     body.select-mode .check-circle { display: block; }
     .node-box.selected .check-circle { background: var(--accent); border-color: var(--accent); }
 
-    /* パネル類（絶対配置） */
     .panel {
         position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; display: none;
-        flex-direction: column;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; display: none; flex-direction: column;
     }
     .panel.show { display: flex; }
     .panel-header { padding: 10px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
@@ -184,7 +173,6 @@
     .menu-popup.show { display: block; }
     .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
     .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
-
 </style>
 </head>
 <body>
@@ -298,7 +286,7 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'wafu_v3_5';
+const STORAGE_KEY = 'wafu_v3_6';
 let projects = [], currentProjectId = null, currentMode = 'list';
 let undoStack = [], redoStack = [], uidCounter = 0;
 
@@ -313,7 +301,6 @@ window.onload = () => {
     });
 };
 
-/* プロジェクト管理 */
 function loadProjects() { try { const str = localStorage.getItem(STORAGE_KEY); if (str) projects = JSON.parse(str); } catch(e) {} }
 function saveProjects() {
     if (currentProjectId) {
@@ -358,7 +345,6 @@ function resetProject() {
     switchProject(projects[0].id); saveProjects();
 }
 
-/* Undo/Redo */
 function pushHistory() {
     const s = { tree: serializeTree(document.getElementById('rootList')), novel: document.getElementById('novelText').value, mode: currentMode };
     if (undoStack.length > 0 && JSON.stringify(undoStack[undoStack.length-1]) === JSON.stringify(s)) return;
@@ -372,7 +358,6 @@ function restoreSnapshot(s) {
     saveProjects(); updateCount();
 }
 
-/* DOM */
 function generateId() { return 'n' + (++uidCounter); }
 function addNode(text="", parentUl=null, color="", memo="") {
     const ul = parentUl || document.getElementById('rootList');
@@ -405,7 +390,6 @@ function serializeTree(ul) {
 }
 function resize(ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
-/* モード */
 function setMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
@@ -413,7 +397,7 @@ function setMode(mode) {
     const lv=document.getElementById('listView'), nv=document.getElementById('novelView');
     const ft=document.querySelector('.footer');
     
-    // ラピッドモードが有効ならフッター（ラピッドバー）は隠さない
+    // ラピッドモード継続確認
     const isRapid = document.body.classList.contains('rapid-mode');
 
     if(mode==='novel') {
@@ -421,7 +405,7 @@ function setMode(mode) {
         tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
         lv.style.display='none'; nv.style.display='block'; 
         
-        // 小説モード：ラピッドなら表示、そうでなければ非表示
+        // 小説モード：ラピッドONなら表示、OFFなら隠す
         ft.style.display = isRapid ? 'flex' : 'none';
         
     } else {
@@ -434,21 +418,18 @@ function setMode(mode) {
             const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
         });
         lv.style.display='block'; nv.style.display='none'; 
-        
-        // 構成モード：常に表示
-        ft.style.display = 'flex';
+        ft.style.display = 'flex'; // 構成モードは常に表示
     }
     updateCount();
 }
 
-/* ラピッドモード */
 function toggleRapidMode() {
     document.body.classList.toggle('rapid-mode');
     const isRapid = document.body.classList.contains('rapid-mode');
     
     document.getElementById('mainMenu').classList.remove('show');
     
-    // フッターの表示制御
+    // フッター表示制御
     const ft = document.querySelector('.footer');
     if (currentMode === 'novel') {
         ft.style.display = isRapid ? 'flex' : 'none';
@@ -478,7 +459,6 @@ function submitRapid() {
     input.value = ""; input.focus();
 }
 
-/* アクション */
 function toggleSelectMode() { document.body.classList.toggle('select-mode'); document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected')); }
 function handleNodeClick(c) { if(document.body.classList.contains('select-mode')){ c.parentElement.classList.toggle('selected'); updateCount(); } }
 function getSel() { return Array.from(document.querySelectorAll('.node-box.selected')).map(b=>b.closest('li')); }
@@ -539,7 +519,6 @@ function toggleMenu(){document.getElementById('mainMenu').classList.toggle('show
 function getFocusedLi(){const ae=document.activeElement; return (ae&&ae.classList.contains('row-text'))?ae.closest('li'):null;}
 function escapeHtml(s){if(!s)return"";return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','':'&quot;',"'":'&#039;'}[c]));}
 
-/* 保存・連携 */
 function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
 function getExportContent() {
     const scope = document.querySelector('input[name="exScope"]:checked').value;
