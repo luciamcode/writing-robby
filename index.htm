@@ -3,13 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-<title>和風 執筆ノ間・真打</title>
+<title>和風 執筆ノ間</title>
 <style>
     :root {
         --bg-paper: #fcfaf2; --text: #2b2b2b; --bar-bg: #fdfdfd; --border: #dcd3b2;
         --accent: #165e83; --selected: #e3eff7; --danger: #b7282e; --btn-text: #666;
         --memo-bg: #f0f0e8; --highlight: #fff3b8;
         --c-red: #ffcdd2; --c-blue: #bbdefb; --c-green: #c8e6c9; --c-yellow: #fff9c4; --c-purple: #e1bee7;
+        
+        /* 高さ定数 */
+        --h-proj: 36px;
+        --h-head: 44px;
+        --h-foot: 50px;
     }
     body.dark-mode {
         --bg-paper: #202124; --text: #e8eaed; --bar-bg: #303134; --border: #5f6368;
@@ -18,7 +23,7 @@
         --c-red: #5c2b2b; --c-blue: #1f3a52; --c-green: #254227; --c-yellow: #4a4218; --c-purple: #3a2342;
     }
     
-    /* --- 鉄壁のアプリ型レイアウト --- */
+    /* --- アプリ型固定レイアウト --- */
     html { height: 100%; overflow: hidden; }
     body {
         font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
@@ -179,6 +184,7 @@
     .menu-popup.show { display: block; }
     .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
     .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
+
 </style>
 </head>
 <body>
@@ -284,12 +290,15 @@
     <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
     <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
     <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
-    <div class="menu-row" onclick="toggleImportExport()">floppy_disk 保存/連携/読込</div>
+    <div class="menu-row" onclick="toggleImportExport()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+        保存/連携/読込
+    </div>
     <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
 </div>
 
 <script>
-const STORAGE_KEY = 'wafu_v3_4';
+const STORAGE_KEY = 'wafu_v3_5';
 let projects = [], currentProjectId = null, currentMode = 'list';
 let undoStack = [], redoStack = [], uidCounter = 0;
 
@@ -401,13 +410,20 @@ function setMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector(mode==='list'?'.m-btn:nth-child(1)':'.m-btn:nth-child(2)').classList.add('active');
-    const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), ft=document.querySelector('.toolbar-row');
-    document.body.classList.remove('rapid-mode');
+    const lv=document.getElementById('listView'), nv=document.getElementById('novelView');
+    const ft=document.querySelector('.footer');
+    
+    // ラピッドモードが有効ならフッター（ラピッドバー）は隠さない
+    const isRapid = document.body.classList.contains('rapid-mode');
 
     if(mode==='novel') {
         let txt=""; function tr(ul,d){Array.from(ul.children).forEach(li=>{txt+="　".repeat(d)+li.querySelector('.row-text').value+"\n";tr(li.querySelector('ul'),d+1)})}
         tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
-        lv.style.display='none'; nv.style.display='block'; ft.style.display='none';
+        lv.style.display='none'; nv.style.display='block'; 
+        
+        // 小説モード：ラピッドなら表示、そうでなければ非表示
+        ft.style.display = isRapid ? 'flex' : 'none';
+        
     } else {
         const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
         const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
@@ -417,7 +433,10 @@ function setMode(mode) {
             while(stack.length>1 && stack[stack.length-1].l>=l)stack.pop();
             const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
         });
-        lv.style.display='block'; nv.style.display='none'; ft.style.display='flex';
+        lv.style.display='block'; nv.style.display='none'; 
+        
+        // 構成モード：常に表示
+        ft.style.display = 'flex';
     }
     updateCount();
 }
@@ -425,12 +444,20 @@ function setMode(mode) {
 /* ラピッドモード */
 function toggleRapidMode() {
     document.body.classList.toggle('rapid-mode');
+    const isRapid = document.body.classList.contains('rapid-mode');
+    
     document.getElementById('mainMenu').classList.remove('show');
-    if(document.body.classList.contains('rapid-mode')) {
+    
+    // フッターの表示制御
+    const ft = document.querySelector('.footer');
+    if (currentMode === 'novel') {
+        ft.style.display = isRapid ? 'flex' : 'none';
+    } else {
+        ft.style.display = 'flex';
+    }
+
+    if(isRapid) {
         document.getElementById('rapidInput').focus();
-    } else if(currentMode === 'novel') {
-        // 小説モードでラピッド終了時はフッター隠す
-        document.querySelector('.toolbar-row').style.display = 'none';
     }
 }
 function checkRapidEnter(e) { if(e.key === 'Enter') submitRapid(); }
