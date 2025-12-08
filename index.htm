@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
 <title>和風 執筆ノ間・真打</title>
 <style>
     :root {
@@ -10,11 +10,6 @@
         --accent: #165e83; --selected: #e3eff7; --danger: #b7282e; --btn-text: #666;
         --memo-bg: #f0f0e8; --highlight: #fff3b8;
         --c-red: #ffcdd2; --c-blue: #bbdefb; --c-green: #c8e6c9; --c-yellow: #fff9c4; --c-purple: #e1bee7;
-        
-        /* 高さ定数 */
-        --h-proj: 36px;
-        --h-head: 44px;
-        --h-foot: 50px;
     }
     body.dark-mode {
         --bg-paper: #202124; --text: #e8eaed; --bar-bg: #303134; --border: #5f6368;
@@ -23,27 +18,25 @@
         --c-red: #5c2b2b; --c-blue: #1f3a52; --c-green: #254227; --c-yellow: #4a4218; --c-purple: #3a2342;
     }
     
-    /* --- アプリ型固定レイアウト --- */
+    /* --- 鉄壁のアプリ型レイアウト --- */
+    html { height: 100%; overflow: hidden; }
     body {
         font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
         background: var(--bg-paper); color: var(--text);
-        margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; /* 全体スクロール禁止 */
-        position: fixed; /* iOSのバウンス防止 */
+        margin: 0; padding: 0; width: 100%; 
+        height: 100dvh; /* キーボード出現時に動的に高さが変わる */
+        display: flex; flex-direction: column; /* 縦並びレイアウト */
+        overflow: hidden; /* 全体スクロール禁止 */
     }
+    
     textarea, input, select { font-family: inherit; }
     .icon { width: 20px; height: 20px; fill: currentColor; vertical-align: middle; }
 
-    /* 上部固定エリア */
-    .top-fixed {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-        background: var(--bar-bg);
-    }
+    /* 1. 上部エリア (固定長) */
+    .top-area { flex: 0 0 auto; z-index: 10; background: var(--bar-bg); border-bottom: 1px solid var(--border); }
 
-    /* プロジェクトタブ */
     .project-bar {
-        height: var(--h-proj); border-bottom: 1px solid var(--border);
-        display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px;
-        box-sizing: border-box;
+        height: 36px; display: flex; overflow-x: auto; white-space: nowrap; align-items: flex-end; padding: 0 5px; border-bottom: 1px solid var(--border);
     }
     .p-tab {
         padding: 6px 12px; font-size: 13px; color: var(--btn-text); border: 1px solid transparent;
@@ -55,11 +48,8 @@
     }
     .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; }
 
-    /* ヘッダー */
     .header {
-        height: var(--h-head); border-bottom: 1px solid var(--border);
-        display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
-        box-sizing: border-box;
+        height: 44px; display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
     }
     .mode-switch { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; }
     .m-btn {
@@ -67,45 +57,69 @@
     }
     .m-btn.active { background: var(--bg-paper); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .count-info { font-size: 10px; color: var(--btn-text); text-align: right; line-height: 1.2; margin-left: 10px; }
-    
-    /* --- メインスクロールエリア (絶対配置) --- */
+
+    /* 2. メインエリア (可変長・スクロール) */
     #mainArea {
-        position: fixed;
-        top: calc(var(--h-proj) + var(--h-head)); 
-        bottom: var(--h-foot);
-        left: 0; right: 0;
-        overflow: hidden;
+        flex: 1 1 auto; /* 残りの高さを全て使う */
+        overflow: hidden; position: relative;
+        display: flex; flex-direction: column;
     }
-    /* ラピッドモード時は下が縮むなどの調整はJSで行うか、paddingで逃げる */
     
-    #listView { 
-        height: 100%; overflow-y: auto; padding: 10px; 
-        box-sizing: border-box; -webkit-overflow-scrolling: touch; 
-        padding-bottom: 80px; /* フッター被り防止 */
+    #listView, #novelView {
+        flex: 1; overflow-y: auto; padding: 10px;
+        -webkit-overflow-scrolling: touch; box-sizing: border-box;
     }
-    #novelView { 
-        height: 100%; display: none; padding: 20px 15px; 
-        box-sizing: border-box; overflow-y: auto; 
-        padding-bottom: 80px; 
-    }
+    #novelView { padding: 15px; }
+    
     #novelText { 
-        width: 100%; min-height: 100%; border: none; background: transparent; 
+        width: 100%; height: 100%; border: none; background: transparent; 
         color: var(--text); font-size: 16px; line-height: 2.0; resize: none; outline: none; 
     }
-    #novelText::after { content: ""; display: block; height: 50vh; }
+    /* スクロール余白 */
+    #novelText::after, #listView::after { content: ""; display: block; height: 100px; }
 
-    /* --- ノード --- */
+    /* 3. フッター (固定長) */
+    .footer {
+        flex: 0 0 auto; z-index: 10;
+        background: var(--bar-bg); border-top: 1px solid var(--border);
+        padding-bottom: env(safe-area-inset-bottom);
+        min-height: 50px;
+    }
+    .toolbar-row { height: 50px; display: flex; justify-content: space-around; align-items: center; }
+    .f-btn {
+        flex: 1; height: 100%; display: flex; flex-direction: column; 
+        justify-content: center; align-items: center; font-size: 9px; 
+        color: var(--btn-text); border: none; background: none; cursor: pointer;
+    }
+    .f-btn:active { background: rgba(0,0,0,0.05); }
+
+    /* ラピッドバー */
+    #rapidBar {
+        display: none; height: 50px; align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
+    }
+    .rapid-input {
+        flex: 1; height: 36px; border-radius: 18px; border: 1px solid var(--border); 
+        background: var(--bg-paper); color: var(--text); padding: 0 15px; outline: none; margin-right: 8px; font-size: 16px;
+    }
+    .rapid-send {
+        width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
+        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+    }
+    .rapid-close {
+        width: 30px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
+        font-size: 24px; cursor: pointer; margin-left: 5px; flex-shrink: 0; line-height: 1;
+    }
+
+    /* ノードスタイル */
     ul { list-style: none; padding: 0; margin: 0; }
     ul ul { padding-left: 20px; border-left: 1px dashed var(--border); margin-top: 2px; }
     .node { margin-bottom: 6px; }
     .node.hidden { display: none; }
-    
     .node-box {
         background: var(--bar-bg); border: 1px solid transparent; border-radius: 4px;
         transition: background 0.2s; position: relative;
     }
     .node-content { display: flex; align-items: flex-start; padding: 6px 2px; }
-    
     .node-box[data-color="red"] { background: var(--c-red); }
     .node-box[data-color="blue"] { background: var(--c-blue); }
     .node-box[data-color="green"] { background: var(--c-green); }
@@ -124,54 +138,15 @@
     }
     .node-memo.show { display: block; }
     .memo-input { width: 100%; background: transparent; border: none; outline: none; resize: none; color: inherit; }
-    mark { background: var(--highlight); color: inherit; padding: 0 2px; }
-
-    /* --- フッター (下部固定) --- */
-    .footer {
-        position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-        background: var(--bar-bg); border-top: 1px solid var(--border);
-        padding-bottom: env(safe-area-inset-bottom);
-        height: var(--h-foot);
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        display: flex; flex-direction: column; justify-content: flex-end;
-    }
-    .toolbar-row { 
-        width: 100%; height: var(--h-foot); display: flex; justify-content: space-around; align-items: center; 
-    }
-    .f-btn {
-        flex: 1; height: 100%; display: flex; flex-direction: column; 
-        justify-content: center; align-items: center; font-size: 9px; 
-        color: var(--btn-text); border: none; background: none; cursor: pointer;
-    }
-    .f-btn:active { background: rgba(0,0,0,0.05); }
     
-    /* ラピッドバー */
-    #rapidBar {
-        display: none; width: 100%; height: var(--h-foot); align-items: center; padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
-    }
-    .rapid-input {
-        flex: 1; height: 36px; border-radius: 18px; border: 1px solid var(--border); 
-        background: var(--bg-paper); color: var(--text); padding: 0 15px; outline: none; margin-right: 8px; font-size: 14px;
-    }
-    .rapid-send {
-        width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
-        border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
-    }
-    .rapid-close {
-        width: 30px; height: 36px; background: transparent; color: var(--btn-text); border: none; 
-        font-size: 18px; cursor: pointer; margin-left: 5px; flex-shrink: 0;
-    }
-
-    /* モードによる表示切替 */
+    /* モード制御 */
     body.select-mode .f-normal { display: none; }
     body.select-mode .f-select { display: flex; }
     .f-select { display: none; }
     
     body.rapid-mode .toolbar-row { display: none; }
     body.rapid-mode #rapidBar { display: flex; }
-    /* ラピッドモード時もフッター高さは変わらないが、キーボードが出るので固定位置が重要 */
-
-    /* 選択インジケータ */
+    
     .check-circle { 
         width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 50%; 
         margin-right: 4px; display: none; flex-shrink: 0; margin-top: 4px;
@@ -179,9 +154,9 @@
     body.select-mode .check-circle { display: block; }
     .node-box.selected .check-circle { background: var(--accent); border-color: var(--accent); }
 
-    /* パネル類 */
+    /* パネル類（絶対配置） */
     .panel {
-        position: fixed; top: 90px; left: 10px; right: 10px; bottom: 70px;
+        position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
         background: var(--bar-bg); border: 1px solid var(--border); border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 100; display: none;
         flex-direction: column;
@@ -192,7 +167,6 @@
     .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px; text-align: center; font-weight: bold;}
     
     .io-options { margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 4px; }
-    .io-label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
     .radio-group label { margin-right: 15px; font-size: 14px; cursor: pointer; }
     .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
     .btn-group button { flex: 1; margin-bottom: 0; }
@@ -204,14 +178,12 @@
     }
     .menu-popup.show { display: block; }
     .menu-row { padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-    .menu-row:last-child { border-bottom: none; }
     .search-item { padding: 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
-
 </style>
 </head>
 <body>
 
-<div class="top-fixed">
+<div class="top-area">
     <div class="project-bar" id="projectBar">
         <div class="p-tab active">本編</div>
         <div class="p-add-btn" onclick="addProject()">＋</div>
@@ -232,72 +204,53 @@
     </div>
 </div>
 
-<div class="menu-popup" id="mainMenu">
-    <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
-    <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
-    <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
-    <div class="menu-row" onclick="toggleImportExport()">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-        保存/連携/読込
-    </div>
-    <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
-</div>
-
-<div class="panel" id="searchPanel">
-    <div class="panel-header"><span>検索</span><span onclick="toggleSearch()">✕</span></div>
-    <div style="padding:10px; border-bottom:1px solid var(--border);">
-        <input type="text" id="searchInput" placeholder="検索ワード (正規表現可)" style="width:100%; padding:8px; box-sizing:border-box;">
-        <div style="margin-top:5px; text-align:right;">
-            <button onclick="runSearch()" style="width:auto; display:inline-block;">実行</button>
-        </div>
-    </div>
-    <div class="panel-body" id="searchResultList"></div>
-    <div style="padding:10px; border-top:1px solid var(--border); text-align:center;">
-        <button onclick="toggleSearch(); toggleImportExport();" style="width:100%">検索結果をエクスポートへ</button>
-    </div>
-</div>
-
-<div class="panel" id="ioPanel">
-    <div class="panel-header"><span>保存・連携・読込</span><span onclick="toggleImportExport()">✕</span></div>
-    <div class="panel-body">
-        <div class="io-options">
-            <span class="io-label">対象範囲</span>
-            <div class="radio-group">
-                <label><input type="radio" name="exScope" value="all" checked> 全体</label>
-                <label><input type="radio" name="exScope" value="visible"> 表示中のみ</label>
-                <label><input type="radio" name="exScope" value="selected"> 選択中のみ</label>
-            </div>
-            <div style="margin-top:8px;">
-                <label><input type="checkbox" id="exCodeBlock"> コードブロック (```) 付与</label>
-            </div>
-        </div>
-        <h4>アクション</h4>
-        <div class="btn-group">
-            <button onclick="copyToClipboard()">📋 コピー</button>
-            <button onclick="shareText()">🚀 共有</button>
-        </div>
-        <button onclick="exportData('txt')">💾 ファイル保存 (.txt)</button>
-        <button onclick="exportData('md')">MD保存 (.md)</button>
-        <button onclick="exportData('opml')">OPML保存 (.opml)</button>
-        <hr>
-        <h4>インポート</h4>
-        <button onclick="importFromClipboard()">📋 クリップボードから読込</button>
-        <input type="file" id="fileInput" onchange="importFile(this)" style="margin-top:5px;">
-    </div>
-</div>
-
-<div class="panel" id="tplPanel">
-    <div class="panel-header"><span>テンプレート</span><span onclick="toggleTemplate()">✕</span></div>
-    <div class="panel-body">
-        <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
-        <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
-        <div class="search-item" onclick="insertTemplate('……\n　　　******\n……')">場面転換（アスタリスク）</div>
-    </div>
-</div>
-
 <div id="mainArea">
     <div id="listView"><ul id="rootList"></ul></div>
     <div id="novelView"><textarea id="novelText" oninput="handleNovelInput()" onclick="handleNovelInput()"></textarea></div>
+    
+    <div class="panel" id="searchPanel">
+        <div class="panel-header"><span>検索</span><span onclick="toggleSearch()">✕</span></div>
+        <div style="padding:10px; border-bottom:1px solid var(--border);">
+            <input type="text" id="searchInput" placeholder="正規表現可" style="width:100%; padding:8px;">
+            <div style="margin-top:5px; text-align:right;"><button onclick="runSearch()" style="width:auto; display:inline-block;">実行</button></div>
+        </div>
+        <div class="panel-body" id="searchResultList"></div>
+        <div style="padding:10px; text-align:center;"><button onclick="toggleSearch(); toggleImportExport();">エクスポートへ</button></div>
+    </div>
+
+    <div class="panel" id="ioPanel">
+        <div class="panel-header"><span>保存・連携</span><span onclick="toggleImportExport()">✕</span></div>
+        <div class="panel-body">
+            <div class="io-options">
+                <div class="radio-group">
+                    <label><input type="radio" name="exScope" value="all" checked> 全体</label>
+                    <label><input type="radio" name="exScope" value="visible"> 表示のみ</label>
+                    <label><input type="radio" name="exScope" value="selected"> 選択のみ</label>
+                </div>
+                <div style="margin-top:8px;"><label><input type="checkbox" id="exCodeBlock"> コードブロック(```)</label></div>
+            </div>
+            <div class="btn-group">
+                <button onclick="copyToClipboard()">📋 コピー</button>
+                <button onclick="shareText()">🚀 共有</button>
+            </div>
+            <button onclick="exportData('txt')">💾 TXT保存</button>
+            <button onclick="exportData('md')">MD保存</button>
+            <button onclick="exportData('opml')">OPML保存</button>
+            <hr>
+            <button onclick="importFromClipboard()">📋 クリップボード読込</button>
+            <input type="file" id="fileInput" onchange="importFile(this)" style="margin-top:5px;">
+        </div>
+    </div>
+
+    <div class="panel" id="tplPanel">
+        <div class="panel-header"><span>定型文</span><span onclick="toggleTemplate()">✕</span></div>
+        <div class="panel-body">
+            <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
+            <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
+            <div class="search-item" onclick="insertTemplate('\n……\n　　　******\n……\n')">場面転換</div>
+            <div class="search-item" onclick="insertTemplate('「」')">カギカッコ</div>
+        </div>
+    </div>
 </div>
 
 <div class="footer">
@@ -309,6 +262,7 @@
         <div class="f-btn f-normal" onclick="moveIndent(1)"><svg class="icon" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>字下げ</div>
         <div class="f-btn f-normal" onclick="addNode()" style="color:var(--accent)"><svg class="icon" style="width:28px;height:28px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg></div>
         <div class="f-btn f-normal" onclick="toggleSelectMode()"><svg class="icon" viewBox="0 0 24 24"><path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41z"/></svg>選択</div>
+        
         <div class="f-btn f-select" onclick="moveItem(-1)">⬆ 移動</div>
         <div class="f-btn f-select" onclick="moveItem(1)">⬇ 移動</div>
         <div class="f-btn f-select" onclick="mergeNodes()">🔗 結合</div>
@@ -326,13 +280,18 @@
     </div>
 </div>
 
+<div class="menu-popup" id="mainMenu">
+    <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
+    <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
+    <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
+    <div class="menu-row" onclick="toggleImportExport()">floppy_disk 保存/連携/読込</div>
+    <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
+</div>
+
 <script>
-const STORAGE_KEY = 'wafu_v3_projects';
-let projects = [];
-let currentProjectId = null;
-let currentMode = 'list';
-let undoStack = [], redoStack = [];
-let uidCounter = 0;
+const STORAGE_KEY = 'wafu_v3_4';
+let projects = [], currentProjectId = null, currentMode = 'list';
+let undoStack = [], redoStack = [], uidCounter = 0;
 
 window.onload = () => {
     loadProjects();
@@ -360,7 +319,7 @@ function saveProjects() {
 }
 function createProject(name) {
     const newId = 'proj_' + Date.now();
-    projects.push({ id: newId, name: name, tree: [{text: "新規プロジェクト", children:[]}], novel: "", mode: 'list' });
+    projects.push({ id: newId, name: name, tree: [{text: "新規", children:[]}], novel: "", mode: 'list' });
     saveProjects(); renderTabs();
     if (projects.length === 1) switchProject(newId);
 }
@@ -404,7 +363,7 @@ function restoreSnapshot(s) {
     saveProjects(); updateCount();
 }
 
-/* DOM操作 */
+/* DOM */
 function generateId() { return 'n' + (++uidCounter); }
 function addNode(text="", parentUl=null, color="", memo="") {
     const ul = parentUl || document.getElementById('rootList');
@@ -426,9 +385,7 @@ function addNode(text="", parentUl=null, color="", memo="") {
     ul.appendChild(li); resize(li.querySelector('.row-text')); return li;
 }
 function preventDrag(e){e.preventDefault();}
-function buildTree(ul, data) {
-    data.forEach(d => { const li = addNode(d.text, ul, d.color, d.memo); if(d.children) buildTree(li.querySelector('ul'), d.children); });
-}
+function buildTree(ul, data) { data.forEach(d => { const li = addNode(d.text, ul, d.color, d.memo); if(d.children) buildTree(li.querySelector('ul'), d.children); }); }
 function serializeTree(ul) {
     return Array.from(ul.children).map(li => ({
         text: li.querySelector('.row-text').value,
@@ -439,22 +396,18 @@ function serializeTree(ul) {
 }
 function resize(ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
-/* モード切替 */
+/* モード */
 function setMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
     document.querySelector(mode==='list'?'.m-btn:nth-child(1)':'.m-btn:nth-child(2)').classList.add('active');
-    const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), ft=document.querySelector('.footer');
+    const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), ft=document.querySelector('.toolbar-row');
     document.body.classList.remove('rapid-mode');
 
     if(mode==='novel') {
         let txt=""; function tr(ul,d){Array.from(ul.children).forEach(li=>{txt+="　".repeat(d)+li.querySelector('.row-text').value+"\n";tr(li.querySelector('ul'),d+1)})}
         tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
-        lv.style.display='none'; nv.style.display='block'; 
-        // 小説モードでは通常フッターは隠すが、ラピッドモードは使えるようにする
-        ft.style.display='flex'; 
-        document.querySelector('.toolbar-row').style.display = 'none'; // 通常ツールバーを隠す
-        // ラピッド起動ボタンだけは欲しい…が、メニューから起動するのでOK
+        lv.style.display='none'; nv.style.display='block'; ft.style.display='none';
     } else {
         const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
         const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
@@ -465,26 +418,19 @@ function setMode(mode) {
             const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
         });
         lv.style.display='block'; nv.style.display='none'; ft.style.display='flex';
-        document.querySelector('.toolbar-row').style.display = 'flex';
     }
     updateCount();
 }
 
 /* ラピッドモード */
 function toggleRapidMode() {
-    // 小説モードでもラピッドは有効にする
     document.body.classList.toggle('rapid-mode');
     document.getElementById('mainMenu').classList.remove('show');
     if(document.body.classList.contains('rapid-mode')) {
         document.getElementById('rapidInput').focus();
-        document.querySelector('.footer').style.display = 'flex'; // フッター強制表示
-    } else {
-        // ラピッド終了時、小説モードならフッター（通常ツールバー）を隠す必要がある
-        if(currentMode === 'novel') {
-             document.querySelector('.toolbar-row').style.display = 'none';
-             // document.querySelector('.footer').style.display = 'none'; // ※メニューボタンも消えるので枠だけ残すか？いや、メニューは上にある
-             // 小説モードは「書く」ことに集中するためフッターなしがデフォルト
-        }
+    } else if(currentMode === 'novel') {
+        // 小説モードでラピッド終了時はフッター隠す
+        document.querySelector('.toolbar-row').style.display = 'none';
     }
 }
 function checkRapidEnter(e) { if(e.key === 'Enter') submitRapid(); }
@@ -497,10 +443,8 @@ function submitRapid() {
         const li = addNode(val, null);
         li.scrollIntoView({behavior:"smooth", block:"center"});
     } else {
-        // 小説モード：末尾に追記
         const ta = document.getElementById('novelText');
         ta.value += (ta.value ? "\n" : "") + val;
-        // スクロール
         ta.scrollTop = ta.scrollHeight;
     }
     pushHistory();
@@ -513,7 +457,7 @@ function handleNodeClick(c) { if(document.body.classList.contains('select-mode')
 function getSel() { return Array.from(document.querySelectorAll('.node-box.selected')).map(b=>b.closest('li')); }
 function moveIndent(d) {
     const t=getSel().length?getSel():[getFocusedLi()];
-    t.forEach(li=>{ if(!li)return; if(d===1){const p=li.previousElementSibling;if(p){p.querySelector('ul').appendChild(li);}}else{const p=li.parentElement.closest('li');if(p)p.after(li);} }); pushHistory();
+    t.forEach(li=>{ if(!li)return; if(d===1){const p=li.previousElementSibling;if(p){p.querySelector('ul').appendChild(li);p.querySelector('ul').style.display='block';}}else{const p=li.parentElement.closest('li');if(p)p.after(li);} }); pushHistory();
 }
 function moveItem(d) {
     const t=getSel(); if(!t.length)return;
@@ -539,23 +483,12 @@ function runSearch() {
     if(!q)return;
     try {
         const re=new RegExp(q);
-        document.querySelectorAll('.node').forEach(n => {
-            const txt = n.querySelector('.row-text').value;
-            if(!re.test(txt)) n.classList.add('hidden'); 
-        });
-        document.querySelectorAll('.node:not(.hidden)').forEach(n => {
-            let p = n.parentElement.closest('.node');
-            while(p) { p.classList.remove('hidden'); p=p.parentElement.closest('.node'); }
-        });
+        document.querySelectorAll('.node').forEach(n => { const txt = n.querySelector('.row-text').value; if(!re.test(txt)) n.classList.add('hidden'); });
+        document.querySelectorAll('.node:not(.hidden)').forEach(n => { let p = n.parentElement.closest('.node'); while(p) { p.classList.remove('hidden'); p=p.parentElement.closest('.node'); } });
         document.querySelectorAll('.row-text').forEach(ta => {
              if(!ta.closest('.node').classList.contains('hidden')) {
-                 const d=document.createElement('div'); d.className='search-item';
-                 d.innerText=ta.value.substring(0,30)+"...";
-                 d.onclick=()=>{ 
-                     ta.scrollIntoView({behavior:"smooth",block:"center"}); 
-                     ta.parentElement.style.background="#fff3b8"; setTimeout(()=>ta.parentElement.style.background="",2000); 
-                     toggleSearch(); 
-                 };
+                 const d=document.createElement('div'); d.className='search-item'; d.innerText=ta.value.substring(0,30)+"...";
+                 d.onclick=()=>{ ta.scrollIntoView({behavior:"smooth",block:"center"}); ta.parentElement.style.background="#fff3b8"; setTimeout(()=>ta.parentElement.style.background="",2000); toggleSearch(); };
                  lst.appendChild(d);
              }
         });
@@ -608,9 +541,8 @@ function copyToClipboard() { navigator.clipboard.writeText(getExportContent()).t
 function shareText() { if(navigator.share){navigator.share({title:'執筆ノ間',text:getExportContent()});}else{alert("共有未対応ブラウザです");} }
 function exportData(type) {
     let c = getExportContent(); if(!c && type!=='opml') return;
-    if(type==='md'){
-        c = c.split('\n').map(l=>{const m=l.match(/^(　+)(.*)/);return m?"  ".repeat(m[1].length)+"- "+m[2]:(l?"- "+l:"");}).join('\n');
-    } else if(type==='opml'){
+    if(type==='md'){ c = c.split('\n').map(l=>{const m=l.match(/^(　+)(.*)/);return m?"  ".repeat(m[1].length)+"- "+m[2]:(l?"- "+l:"");}).join('\n'); }
+    else if(type==='opml'){
         c=`<?xml version="1.0"?><opml version="2.0"><head><title>Export</title></head><body>`;
         function tr(ul){let s="";Array.from(ul.children).forEach(li=>{if(li.classList.contains('hidden'))return;s+=`<outline text="${escapeHtml(li.querySelector('.row-text').value)}">`+tr(li.querySelector('ul'))+`</outline>`;});return s;}
         c+=tr(document.getElementById('rootList'))+`</body></opml>`;
