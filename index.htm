@@ -192,9 +192,11 @@ const focusPlaceholders = ["ただ、今の一行を紡ぐ...", "セリフだけ
 window.onload = () => {
     loadProjects();
     if (projects.length === 0) createProject("本編");
+    
+    // 1. まずは通常のプロジェクト切り替えを完了させます
     switchProject(projects[0].id);
 
-    // 🌸 起動時：URLパラメータに「庵の住所（from_io）」と「テキスト」があるか確認
+    // 2. その後に、庵から飛んできたURLパラメータの判定を行います
     const params = new URLSearchParams(window.location.search);
     const incomingText = params.get('text');
     const fromIo = params.get('from_io');
@@ -203,14 +205,23 @@ window.onload = () => {
         returnUrlBase = decodeURIComponent(fromIo);
         document.getElementById('btn-return-io').style.display = 'inline-block'; // 帰り道ボタン出現
     }
+    
     if (incomingText) {
-        // 庵からテキストが渡されたら、小説ビューに展開してから構成に落とし込む
-        document.getElementById('novelText').value = decodeURIComponent(incomingText);
+        // 庵からテキストが渡された場合は、確実に「小説モード」に値をセットします
+        const novelTextarea = document.getElementById('novelText');
+        novelTextarea.value = decodeURIComponent(incomingText);
+        
+        // 【重要】ここで明示的に強制同期
+        // 小説モードにして文字を流し込み、それを構成（list）モードへと強制逆変換してツリーを作ります
         setMode('novel');
-        setMode('list'); // 自動展開
-        alert("言の葉を選る庵から、文章をケージへ召喚いたしました。");
+        setMode('list'); 
+        
+        pushHistory();
+        saveProjects();
+        alert("言の葉を選る庵から、文章を構成ツリーへと正しく召喚いたしました。");
     }
 };
+
 
 // 🌸 拡張機能：現在の「小説テキスト」を最新の状態で携えて、元の庵のURLに逆流する
 function returnToKotonoha() {
