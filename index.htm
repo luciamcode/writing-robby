@@ -315,15 +315,11 @@
         <div class="p-add-btn" onclick="addProject()">＋</div>
     </div>
     <div class="header">
-        <!-- 帰り道ボタン（庵からデータを持って飛んできた時用） -->
-    <button id="btn-return-io" onclick="returnToKotonoha()" style="display:none; padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵に戻る ↩</button>
-    
-    <!-- 🌸 常設ボタン：いつでも庵を別タブで開くことができます -->
-    <button id="btn-open-kotonoha" onclick="openKotonohaDirect()" style="padding:4px 10px; background:var(--bar-bg); color:var(--accent); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵を開く 🏠</button>
-    
-    <div class="mode-switch">
+        <button id="btn-return-io" onclick="returnToKotonoha()" style="display:none; padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵に戻る ↩</button>
         
-     
+        <button id="btn-open-kotonoha" onclick="openKotonohaDirect()" style="padding:4px 10px; background:var(--bar-bg); color:var(--accent); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵を開く 🏠</button>
+        
+        <div class="mode-switch">
             <button class="m-btn active" id="btn-mode-list" onclick="setMode('list')">構成</button>
             <button class="m-btn" id="btn-mode-novel" onclick="setMode('novel')">小説</button>
             <button class="m-btn" id="btn-mode-focus" onclick="setMode('focus')">集中</button>
@@ -1158,15 +1154,12 @@ function importFile(input) {
 }
 function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
 
-// 🌸 重要：ここにLucia様の「ことば一撰（庵）」の実際のURLを設定してください
-const KOTONOHA_AN_URL = 'https://luciamcode.github.io/kotoba_issen/';
-
-// 庵を直接、新規タブで開く関数
+// 🌸 常設：いつでも庵（ことば一撰）を直接、新規タブで開く関数
+// ここにLucia様の「ことば一撰（庵）」の実際のURLを設定してくださいませ
+const KOTONOHA_AN_URL = '[https://luciamcode.github.io/kotoba_issen/](https://luciamcode.github.io/kotoba_issen/)';
 function openKotonohaDirect() {
     window.open(KOTONOHA_AN_URL, '_blank');
 }
-
-
 </script>
 </body>
 </html>
