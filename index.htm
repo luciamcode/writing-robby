@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-<title>和風 執筆ノ間（極・一行推敲モード搭載版）</title>
+<title>和風 執筆ノ間（極・一行推敲閲覧分離版）</title>
 <style>
     :root {
         --bg-paper: #fcfaf2; --text: #2b2b2b; --bar-bg: #fdfdfd; --border: #dcd3b2;
@@ -132,6 +132,20 @@
     }
     body.dark-mode .focus-textarea { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     
+    /* 推敲モード用：閲覧専用テキストエリア */
+    .focus-view-text {
+        font-size: 20px;
+        line-height: 1.8;
+        text-align: center;
+        margin: 20px 0;
+        min-height: 50px;
+        word-break: break-all;
+        white-space: pre-wrap;
+        width: 100%;
+        color: var(--text);
+        font-weight: bold;
+    }
+
     /* 集中モード：拡張UI */
     .focus-sub-switch {
         display: flex;
@@ -314,6 +328,7 @@
     <div id="listView"><ul id="rootList"></ul></div>
     <div id="novelView"><textarea id="novelText" oninput="handleNovelInput()" onclick="handleNovelInput()"></textarea></div>
     
+    <!-- 集中メモビュー -->
     <div id="focusView">
         <div class="focus-container">
             <div class="focus-sub-switch">
@@ -326,7 +341,11 @@
                 累計:<span class="focus-counter-num" id="focusTotalCount">0</span>行
             </div>
             
-            <div class="focus-input-wrapper">
+            <!-- 推敲モード専用：閲覧用の一行表示エリア -->
+            <div id="focusStaticText" class="focus-view-text" style="display:none;"></div>
+            
+            <!-- 入力用ラッパー -->
+            <div class="focus-input-wrapper" id="focusInputWrapper">
                 <textarea id="focusInput" class="focus-textarea" rows="1" placeholder="ただ、今の一行を紡ぐ..." onkeydown="checkFocusEnter(event)"></textarea>
                 <button class="rapid-send" onclick="submitFocus()">
                     <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -341,8 +360,11 @@
                 <button class="f-tag-btn" data-color="yellow" onclick="selectFocusColor(this)">要修</button>
             </div>
             
+            <!-- 推敲モード専用ナビゲーション＆アクション -->
             <div class="focus-tags" id="focusEditNav" style="display:none; margin-top:20px;">
                 <button class="f-tag-btn" onclick="navigateFocusEdit(-1)">◀ 前へ</button>
+                <button class="f-tag-btn" id="btn-trigger-edit" onclick="startFocusLineEdit()" style="background:var(--selected); font-weight:bold; color:var(--accent);">✏️ 直す</button>
+                <button class="f-tag-btn" onclick="deleteFocusLineEdit()" style="color:var(--danger);">🗑️ 没</button>
                 <button class="f-tag-btn" onclick="navigateFocusEdit(1)">次へ ▶</button>
             </div>
         </div>
@@ -392,6 +414,7 @@
         </div>
     </div>
 
+    <!-- 没箱パネル -->
     <div class="panel" id="trashPanel">
         <div class="panel-header"><span>没箱（一時退避）</span><span onclick="toggleTrashPanel()">✕</span></div>
         <div class="panel-body" id="trashList" style="font-size:14px; line-height:1.6;"></div>
@@ -441,16 +464,17 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'wafu_v3_8';
+const STORAGE_KEY = 'wafu_v3_9';
 let projects = [], currentProjectId = null, currentMode = 'list';
 let undoStack = [], redoStack = [], uidCounter = 0;
 
 // 集中モード用のグローバル状態
 let focusTodayLines = 0;
 let currentFocusColor = "";
-let focusSubMode = 'write'; // 'write' または 'edit'
+let focusSubMode = 'write';
 let editModeNodes = [];
 let currentEditIndex = 0;
+let isFocusLineEditing = false; // 現在推敲モードで「編集フェーズ」か否か
 
 const focusPlaceholders = [
     "ただ、今の一行を紡ぐ...",
@@ -589,7 +613,7 @@ function setMode(mode) {
     } else if(mode==='focus') {
         fv.style.display='flex';
         ft.style.display='none'; 
-        setFocusSubMode(focusSubMode); // サブモード（執筆/推敲）の状態を反映
+        setFocusSubMode(focusSubMode);
         
     } else {
         if(prevMode === 'novel') {
@@ -637,7 +661,7 @@ function submitRapid() {
     input.value = ""; input.focus();
 }
 
-/* 集中メモモード（執筆＆推敲）のロジック */
+/* 集中メモモード（執筆＆推敲）の拡張ロジック */
 function setFocusSubMode(subMode) {
     focusSubMode = subMode;
     document.querySelectorAll('.sub-m-btn').forEach(b => b.classList.remove('active'));
@@ -647,6 +671,8 @@ function setFocusSubMode(subMode) {
     const counterArea = document.getElementById('focusCounterArea');
     const tagsArea = document.getElementById('focusTagsArea');
     const editNav = document.getElementById('focusEditNav');
+    const inputWrapper = document.getElementById('focusInputWrapper');
+    const staticText = document.getElementById('focusStaticText');
     const input = document.getElementById('focusInput');
 
     if(subMode === 'write') {
@@ -654,39 +680,95 @@ function setFocusSubMode(subMode) {
         counterArea.style.display = 'block';
         tagsArea.style.display = 'flex';
         editNav.style.display = 'none';
+        staticText.style.display = 'none';
+        inputWrapper.style.display = 'flex';
         updateFocusCounters();
         rotatePlaceholder();
         input.value = "";
+        setTimeout(() => input.focus(), 50);
     } else {
         editBtn.classList.add('active');
         counterArea.style.display = 'none';
         tagsArea.style.display = 'none';
         editNav.style.display = 'flex';
         
-        // 全ツリーからノード（入力のある行）をフラットに集めて配列化
         editModeNodes = Array.from(document.querySelectorAll('.node'));
         currentEditIndex = 0;
+        isFocusLineEditing = false; // 初期状態は「表示（閲覧）のみ」
         loadFocusEditNode();
     }
-    setTimeout(() => input.focus(), 50);
 }
 
 function loadFocusEditNode() {
+    const staticText = document.getElementById('focusStaticText');
+    const inputWrapper = document.getElementById('focusInputWrapper');
     const input = document.getElementById('focusInput');
+    const editTriggerBtn = document.getElementById('btn-trigger-edit');
+
     if(editModeNodes.length === 0 || currentEditIndex < 0 || currentEditIndex >= editModeNodes.length) {
-        input.value = "";
-        input.placeholder = "直すべき行が、まだ見つかりません。";
+        staticText.innerText = "直すべき行が、まだ見つかりません。";
+        staticText.style.display = 'block';
+        inputWrapper.style.display = 'none';
         return;
     }
+
     const li = editModeNodes[currentEditIndex];
     const ta = li.querySelector('.row-text');
-    input.value = ta ? ta.value : "";
-    input.placeholder = "この一行を、美しく直す...";
+    const currentVal = ta ? ta.value : "";
+
+    if(!isFocusLineEditing) {
+        // 【表示のみフェーズ】
+        staticText.innerText = currentVal;
+        staticText.style.display = 'block';
+        inputWrapper.style.display = 'none';
+        editTriggerBtn.innerText = "✏️ 直す";
+    } else {
+        // 【編集フェーズ】
+        staticText.style.display = 'none';
+        inputWrapper.style.display = 'flex';
+        input.value = currentVal;
+        input.placeholder = "この一行を、美しく直す...";
+        editTriggerBtn.innerText = "👁️ 戻す";
+        setTimeout(() => input.focus(), 50);
+    }
+}
+
+// [✏️ 直す] ボタンを押したときの処理
+function startFocusLineEdit() {
+    if(editModeNodes.length === 0) return;
+    isFocusLineEditing = !isFocusLineEditing; // 状態反転
+    loadFocusEditNode();
+}
+
+// [🗑️ 没] ボタンを押したときの処理
+function deleteFocusLineEdit() {
+    if(editModeNodes.length === 0 || currentEditIndex < 0 || currentEditIndex >= editModeNodes.length) return;
+    const p = projects.find(p => p.id === currentProjectId);
+    if(!p.trash) p.trash = [];
+
+    const currentLi = editModeNodes[currentEditIndex];
+    if(currentLi) {
+        const text = currentLi.querySelector('.row-text').value;
+        if(text.trim() && confirm(`この一行を没箱へ移動しますか？\n「${text.substring(0,20)}...」`)) {
+            p.trash.push({ text: text, date: new Date().toLocaleTimeString() });
+            currentLi.remove(); // 実際のツリーから削除
+            
+            // フラット配列からも削除して次へ進む
+            editModeNodes.splice(currentEditIndex, 1);
+            if(currentEditIndex >= editModeNodes.length) {
+                currentEditIndex = editModeNodes.length - 1;
+            }
+            isFocusLineEditing = false;
+            pushHistory();
+            saveProjects();
+            loadFocusEditNode();
+        }
+    }
 }
 
 function navigateFocusEdit(dir) {
-    // もし現在編集中のものがあれば、Enter同様に保存してから移動
-    if(focusSubMode === 'edit' && editModeNodes.length > 0) {
+    // 編集状態のまま前後へ移動しようとした場合、一度変更を保存する
+    if(isFocusLineEditing && editModeNodes.length > 0) {
         const input = document.getElementById('focusInput');
         const currentLi = editModeNodes[currentEditIndex];
         if(currentLi && input.value.trim()) {
@@ -698,14 +780,16 @@ function navigateFocusEdit(dir) {
             }
         }
     }
+    
     currentEditIndex += dir;
+    isFocusLineEditing = false; // 移動先では常に「表示のみ」からスタート
+    
     if(currentEditIndex < 0) currentEditIndex = 0;
     if(currentEditIndex >= editModeNodes.length) {
-        alert("最後の行まで推敲し終えました！");
+        alert("最後の行まで確認いたしました！");
         currentEditIndex = editModeNodes.length - 1;
     }
     loadFocusEditNode();
-    document.getElementById('focusInput').focus();
 }
 
 function checkFocusEnter(e) {
@@ -736,7 +820,6 @@ function submitFocus() {
     
     if(focusSubMode === 'write') {
         if(!val.trim()) return;
-        // 執筆モード：ツリーの末尾に追加
         addNode(val, null, currentFocusColor);
         focusTodayLines++;
         const p = projects.find(p => p.id === currentProjectId);
@@ -744,7 +827,6 @@ function submitFocus() {
         updateFocusCounters();
         pushHistory();
 
-        // 吸い込まれるエフェクト
         const container = document.querySelector('.focus-container');
         const ghost = document.createElement('div');
         ghost.className = 'focus-ghost';
@@ -761,13 +843,12 @@ function submitFocus() {
         rotatePlaceholder();
         input.focus();
     } else {
-        // 推敲（ズーム）モード：現在の行を上書きして次の行へ進む
+        // 推敲モードでのEnter：編集を確定させて、次の行の【表示のみ】へ進む
         if(editModeNodes.length === 0) return;
         const currentLi = editModeNodes[currentEditIndex];
         if(currentLi) {
             const ta = currentLi.querySelector('.row-text');
             if(ta) {
-                // 変更があった場合のみ履歴保存
                 if(ta.value !== val) {
                     ta.value = val;
                     resize(ta);
@@ -775,14 +856,13 @@ function submitFocus() {
                 }
             }
         }
-        // 次の行へ移動
         currentEditIndex++;
+        isFocusLineEditing = false; // 次の行は「表示のみ」に戻る
         if(currentEditIndex >= editModeNodes.length) {
             alert("全ての行の推敲が完了いたしました！");
             currentEditIndex = editModeNodes.length - 1;
         }
         loadFocusEditNode();
-        input.focus();
     }
 }
 
@@ -931,7 +1011,8 @@ function getExportContent() {
             sel.forEach(li=>{ content+=li.querySelector('.row-text').value+"\n"; });
         } else { content = traverse(document.getElementById('rootList'), 0); }
     }
-    if (isCode) content = "```\n" + content + "\n```";
+    if (isCode) content = "
+```\n" + content + "\n```";
     return content;
 }
 function copyToClipboard() { navigator.clipboard.writeText(getExportContent()).then(()=>alert("コピーしました")).catch(e=>alert(e)); }
