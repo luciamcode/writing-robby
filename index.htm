@@ -315,9 +315,15 @@
         <div class="p-add-btn" onclick="addProject()">＋</div>
     </div>
     <div class="header">
-        <button id="btn-return-io" onclick="returnToKotonoha()" style="display:none; padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵に戻る ↩</button>
+        <!-- 帰り道ボタン（庵からデータを持って飛んできた時用） -->
+    <button id="btn-return-io" onclick="returnToKotonoha()" style="display:none; padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵に戻る ↩</button>
+    
+    <!-- 🌸 常設ボタン：いつでも庵を別タブで開くことができます -->
+    <button id="btn-open-kotonoha" onclick="openKotonohaDirect()" style="padding:4px 10px; background:var(--bar-bg); color:var(--accent); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵を開く 🏠</button>
+    
+    <div class="mode-switch">
         
-        <div class="mode-switch">
+     
             <button class="m-btn active" id="btn-mode-list" onclick="setMode('list')">構成</button>
             <button class="m-btn" id="btn-mode-novel" onclick="setMode('novel')">小説</button>
             <button class="m-btn" id="btn-mode-focus" onclick="setMode('focus')">集中</button>
