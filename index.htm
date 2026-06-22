@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-<title>和風 執筆ノ間（極・集中モード搭載版）</title>
+<title>和風 執筆ノ間（極・一行推敲モード搭載版）</title>
 <style>
     :root {
         --bg-paper: #fcfaf2; --text: #2b2b2b; --bar-bg: #fdfdfd; --border: #dcd3b2;
@@ -133,8 +133,22 @@
     body.dark-mode .focus-textarea { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     
     /* 集中モード：拡張UI */
+    .focus-sub-switch {
+        display: flex;
+        background: rgba(0,0,0,0.03);
+        border: 1px solid var(--border);
+        border-radius: 15px;
+        padding: 2px;
+        margin-bottom: 15px;
+    }
+    body.dark-mode .focus-sub-switch { background: rgba(255,255,255,0.05); }
+    .sub-m-btn {
+        padding: 3px 15px; border: none; background: transparent; color: var(--btn-text); font-size: 11px; cursor: pointer; border-radius: 12px;
+    }
+    .sub-m-btn.active { background: var(--accent); color: #fff; font-weight: bold; }
+
     .focus-counter-area {
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         font-size: 13px;
         color: var(--btn-text);
         letter-spacing: 0.05em;
@@ -302,22 +316,34 @@
     
     <div id="focusView">
         <div class="focus-container">
-            <div class="focus-counter-area">
+            <div class="focus-sub-switch">
+                <button class="sub-m-btn active" id="btn-sub-write" onclick="setFocusSubMode('write')">執筆</button>
+                <button class="sub-m-btn" id="btn-sub-edit" onclick="setFocusSubMode('edit')">推敲</button>
+            </div>
+            
+            <div class="focus-counter-area" id="focusCounterArea">
                 今日:<span class="focus-counter-num" id="focusTodayCount">0</span>行 / 
                 累計:<span class="focus-counter-num" id="focusTotalCount">0</span>行
             </div>
+            
             <div class="focus-input-wrapper">
                 <textarea id="focusInput" class="focus-textarea" rows="1" placeholder="ただ、今の一行を紡ぐ..." onkeydown="checkFocusEnter(event)"></textarea>
                 <button class="rapid-send" onclick="submitFocus()">
                     <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
             </div>
-            <div class="focus-tags">
+            
+            <div class="focus-tags" id="focusTagsArea">
                 <button class="f-tag-btn active" data-color="" onclick="selectFocusColor(this)">本文</button>
                 <button class="f-tag-btn" data-color="blue" onclick="selectFocusColor(this)">台詞</button>
                 <button class="f-tag-btn" data-color="green" onclick="selectFocusColor(this)">覚書</button>
                 <button class="f-tag-btn" data-color="purple" onclick="selectFocusColor(this)">伏線</button>
                 <button class="f-tag-btn" data-color="yellow" onclick="selectFocusColor(this)">要修</button>
+            </div>
+            
+            <div class="focus-tags" id="focusEditNav" style="display:none; margin-top:20px;">
+                <button class="f-tag-btn" onclick="navigateFocusEdit(-1)">◀ 前へ</button>
+                <button class="f-tag-btn" onclick="navigateFocusEdit(1)">次へ ▶</button>
             </div>
         </div>
     </div>
@@ -415,21 +441,23 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'wafu_v3_7'; // 没箱・カウンター用にキーを少し更新
+const STORAGE_KEY = 'wafu_v3_8';
 let projects = [], currentProjectId = null, currentMode = 'list';
 let undoStack = [], redoStack = [], uidCounter = 0;
 
 // 集中モード用のグローバル状態
 let focusTodayLines = 0;
 let currentFocusColor = "";
+let focusSubMode = 'write'; // 'write' または 'edit'
+let editModeNodes = [];
+let currentEditIndex = 0;
+
 const focusPlaceholders = [
     "ただ、今の一行を紡ぐ...",
     "セリフだけでも置いていく...",
     "未来の本編の種をひとつ...",
     "まだ名前のない一文...",
-    "息をひとつ、文章にする...",
-    "つなぎは後回し。感情を一行で...",
-    "ト書き、あるいは情景をポツリと..."
+    "息をひとつ、文章にする..."
 ];
 
 window.onload = () => {
@@ -538,7 +566,7 @@ function serializeTree(ul) {
 function resize(ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
 function setMode(mode) {
-    const prevMode = currentMode; // 前のモードを記憶（重要！）
+    const prevMode = currentMode;
     currentMode = mode;
     document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
     
@@ -561,14 +589,9 @@ function setMode(mode) {
     } else if(mode==='focus') {
         fv.style.display='flex';
         ft.style.display='none'; 
-        updateFocusCounters();
-        rotatePlaceholder();
-        const input = document.getElementById('focusInput');
-        input.value = "";
-        setTimeout(() => input.focus(), 50);
+        setFocusSubMode(focusSubMode); // サブモード（執筆/推敲）の状態を反映
         
     } else {
-        // 構成（list）モードへ戻る際、直前が小説モードだった場合のみツリー再構築
         if(prevMode === 'novel') {
             const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
             const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
@@ -614,7 +637,77 @@ function submitRapid() {
     input.value = ""; input.focus();
 }
 
-/* 集中メモモード専用ロジック */
+/* 集中メモモード（執筆＆推敲）のロジック */
+function setFocusSubMode(subMode) {
+    focusSubMode = subMode;
+    document.querySelectorAll('.sub-m-btn').forEach(b => b.classList.remove('active'));
+    
+    const writeBtn = document.getElementById('btn-sub-write');
+    const editBtn = document.getElementById('btn-sub-edit');
+    const counterArea = document.getElementById('focusCounterArea');
+    const tagsArea = document.getElementById('focusTagsArea');
+    const editNav = document.getElementById('focusEditNav');
+    const input = document.getElementById('focusInput');
+
+    if(subMode === 'write') {
+        writeBtn.classList.add('active');
+        counterArea.style.display = 'block';
+        tagsArea.style.display = 'flex';
+        editNav.style.display = 'none';
+        updateFocusCounters();
+        rotatePlaceholder();
+        input.value = "";
+    } else {
+        editBtn.classList.add('active');
+        counterArea.style.display = 'none';
+        tagsArea.style.display = 'none';
+        editNav.style.display = 'flex';
+        
+        // 全ツリーからノード（入力のある行）をフラットに集めて配列化
+        editModeNodes = Array.from(document.querySelectorAll('.node'));
+        currentEditIndex = 0;
+        loadFocusEditNode();
+    }
+    setTimeout(() => input.focus(), 50);
+}
+
+function loadFocusEditNode() {
+    const input = document.getElementById('focusInput');
+    if(editModeNodes.length === 0 || currentEditIndex < 0 || currentEditIndex >= editModeNodes.length) {
+        input.value = "";
+        input.placeholder = "直すべき行が、まだ見つかりません。";
+        return;
+    }
+    const li = editModeNodes[currentEditIndex];
+    const ta = li.querySelector('.row-text');
+    input.value = ta ? ta.value : "";
+    input.placeholder = "この一行を、美しく直す...";
+}
+
+function navigateFocusEdit(dir) {
+    // もし現在編集中のものがあれば、Enter同様に保存してから移動
+    if(focusSubMode === 'edit' && editModeNodes.length > 0) {
+        const input = document.getElementById('focusInput');
+        const currentLi = editModeNodes[currentEditIndex];
+        if(currentLi && input.value.trim()) {
+            const ta = currentLi.querySelector('.row-text');
+            if(ta && ta.value !== input.value) {
+                ta.value = input.value;
+                resize(ta);
+                pushHistory();
+            }
+        }
+    }
+    currentEditIndex += dir;
+    if(currentEditIndex < 0) currentEditIndex = 0;
+    if(currentEditIndex >= editModeNodes.length) {
+        alert("最後の行まで推敲し終えました！");
+        currentEditIndex = editModeNodes.length - 1;
+    }
+    loadFocusEditNode();
+    document.getElementById('focusInput').focus();
+}
+
 function checkFocusEnter(e) {
     if(e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -636,38 +729,61 @@ function updateFocusCounters() {
     document.getElementById('focusTodayCount').innerText = focusTodayLines;
     document.getElementById('focusTotalCount').innerText = p ? (p.focusTotal || 0) : 0;
 }
+
 function submitFocus() {
     const input = document.getElementById('focusInput');
     const val = input.value;
-    if(!val.trim()) return;
-
-    // 1. 属性色タグを伴って構成ツリーの末尾に追加
-    addNode(val, null, currentFocusColor);
     
-    // 2. カウンター更新
-    focusTodayLines++;
-    const p = projects.find(p => p.id === currentProjectId);
-    if(p) p.focusTotal = (p.focusTotal || 0) + 1;
-    updateFocusCounters();
-    pushHistory();
+    if(focusSubMode === 'write') {
+        if(!val.trim()) return;
+        // 執筆モード：ツリーの末尾に追加
+        addNode(val, null, currentFocusColor);
+        focusTodayLines++;
+        const p = projects.find(p => p.id === currentProjectId);
+        if(p) p.focusTotal = (p.focusTotal || 0) + 1;
+        updateFocusCounters();
+        pushHistory();
 
-    // 3. 吸い込まれる幻影エフェクト
-    const container = document.querySelector('.focus-container');
-    const ghost = document.createElement('div');
-    ghost.className = 'focus-ghost';
-    ghost.innerText = val;
-    container.appendChild(ghost);
+        // 吸い込まれるエフェクト
+        const container = document.querySelector('.focus-container');
+        const ghost = document.createElement('div');
+        ghost.className = 'focus-ghost';
+        ghost.innerText = val;
+        container.appendChild(ghost);
 
-    setTimeout(() => {
-        ghost.style.transform = 'translateY(-120px)';
-        ghost.style.opacity = '0';
-    }, 10);
-    setTimeout(() => { ghost.remove(); }, 410);
+        setTimeout(() => {
+            ghost.style.transform = 'translateY(-120px)';
+            ghost.style.opacity = '0';
+        }, 10);
+        setTimeout(() => { ghost.remove(); }, 410);
 
-    // 4. 次の一手へ
-    input.value = "";
-    rotatePlaceholder();
-    input.focus();
+        input.value = "";
+        rotatePlaceholder();
+        input.focus();
+    } else {
+        // 推敲（ズーム）モード：現在の行を上書きして次の行へ進む
+        if(editModeNodes.length === 0) return;
+        const currentLi = editModeNodes[currentEditIndex];
+        if(currentLi) {
+            const ta = currentLi.querySelector('.row-text');
+            if(ta) {
+                // 変更があった場合のみ履歴保存
+                if(ta.value !== val) {
+                    ta.value = val;
+                    resize(ta);
+                    pushHistory();
+                }
+            }
+        }
+        // 次の行へ移動
+        currentEditIndex++;
+        if(currentEditIndex >= editModeNodes.length) {
+            alert("全ての行の推敲が完了いたしました！");
+            currentEditIndex = editModeNodes.length - 1;
+        }
+        loadFocusEditNode();
+        input.focus();
+    }
 }
 
 function toggleSelectMode() { document.body.classList.toggle('select-mode'); document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected')); }
@@ -713,7 +829,6 @@ function renderTrash() {
         list.innerHTML = "<div style='color:var(--btn-text); text-align:center; padding:20px;'>没箱は空です</div>";
         return;
     }
-    // 新しい没が上に来るように逆順ループ
     for(let i = p.trash.length - 1; i >= 0; i--) {
         const item = p.trash[i];
         const div = document.createElement('div');
@@ -793,7 +908,6 @@ function toggleDark(){document.body.classList.toggle('dark-mode');}
 function toggleMenu(){document.getElementById('mainMenu').classList.toggle('show');}
 function getFocusedLi(){const ae=document.activeElement; return (ae&&ae.classList.contains('row-text'))?ae.closest('li'):null;}
 
-// フィードバックに基づき完全に修正されたエスケープ関数
 function escapeHtml(s){ if(!s)return ""; return s.replace(/[&<>"']/g,c=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c])); }
 
 function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
