@@ -1157,6 +1157,16 @@ function importFile(input) {
     }; r.readAsText(f);
 }
 function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
+
+// 🌸 重要：ここにLucia様の「ことば一撰（庵）」の実際のURLを設定してください
+const KOTONOHA_AN_URL = 'https://luciamcode.github.io/kotoba_issen/';
+
+// 庵を直接、新規タブで開く関数
+function openKotonohaDirect() {
+    window.open(KOTONOHA_AN_URL, '_blank');
+}
+
+
 </script>
 </body>
 </html>
