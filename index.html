@@ -345,7 +345,7 @@
         <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
             <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </div>
-        <div class="f-btn" onclick="toggleMenu()" style="width:40px;">
+        <div class="f-btn" onclick="toggleMenu(event)" style="width:40px;">
             <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </div>
     </div>
@@ -401,6 +401,7 @@
         </div>
     </div>
     
+    <!-- 🪄 文章整形パネル -->
     <div class="panel" id="transformPanel">
         <div class="panel-header"><span>🪄 文章整形（rules.js連携）</span><span onclick="toggleTransformPanel()">✕</span></div>
         <div class="panel-body">
@@ -491,7 +492,9 @@
     </div>
 </div>
 
+<!-- メニューポップアップ（閉じる行を追加） -->
 <div class="menu-popup" id="mainMenu">
+    <div class="menu-row" onclick="toggleMenu(event)" style="justify-content: flex-end; color: var(--btn-text); font-weight: bold; background: rgba(0,0,0,0.03);">✕ 閉じる</div>
     <div class="menu-row" onclick="toggleTransformPanel()">🪄 文章整形（ルール適用）</div>
     <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
     <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
@@ -504,7 +507,6 @@
     <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
 </div>
 
-<!-- 外部ルール定義 ＆ ノード操作マネージャーの読み込み -->
 <script src="rules.js"></script>
 <script src="node_manager.js"></script>
 
@@ -1137,7 +1139,22 @@ function updateCount() {
 }
 function handleNovelInput(){updateCount();}
 function toggleDark(){document.body.classList.toggle('dark-mode');}
-function toggleMenu(){document.getElementById('mainMenu').classList.toggle('show');}
+
+// 修正：引数 event を受けてメニュー外タップの暴発を防止
+function toggleMenu(e) {
+    if (e) e.stopPropagation();
+    document.getElementById('mainMenu').classList.toggle('show');
+}
+
+// 追加：メニュー以外の画面タップで自動クローズ
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('mainMenu');
+    if (menu && menu.classList.contains('show')) {
+        if (!menu.contains(e.target) && !e.target.closest('.f-btn')) {
+            menu.classList.remove('show');
+        }
+    }
+});
 
 function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
 function getExportContent() {
