@@ -132,7 +132,6 @@
     }
     body.dark-mode .focus-textarea { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
     
-    /* 推敲モード用：閲覧専用テキストエリア */
     .focus-view-text {
         font-size: 20px;
         line-height: 1.8;
@@ -152,7 +151,6 @@
     .focus-view-text[data-color="purple"] { color: #4a148c; }
     .focus-view-text[data-color="yellow"] { color: #b78d00; }
 
-    /* 集中モード：拡張UI */
     .focus-sub-switch {
         display: flex;
         background: rgba(0,0,0,0.03);
@@ -220,7 +218,6 @@
     }
     .f-btn:active { background: rgba(0,0,0,0.05); }
 
-    /* ラピッドバー */
     #rapidBar {
         display: none; height: var(--h-foot); align-items: center; 
         padding: 0 10px; box-sizing: border-box; background: var(--bar-bg);
@@ -239,7 +236,6 @@
         font-size: 24px; cursor: pointer; margin-left: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
     }
 
-    /* ノード */
     ul { list-style: none; padding: 0; margin: 0; }
     ul ul { padding-left: 20px; border-left: 1px dashed var(--border); margin-top: 2px; }
     .node { margin-bottom: 6px; }
@@ -296,6 +292,26 @@
     .radio-group label { margin-right: 15px; font-size: 14px; cursor: pointer; }
     .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
     .btn-group button { flex: 1; margin-bottom: 0; }
+
+    .transform-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .transform-grid button {
+        padding: 10px 6px;
+        font-size: 12px;
+        margin-bottom: 0;
+        background: var(--bg-paper);
+        color: var(--accent);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .transform-grid button:active {
+        background: var(--selected);
+    }
 
     .menu-popup {
         position: absolute; top: 40px; right: 10px; width: 220px;
@@ -385,6 +401,16 @@
         </div>
     </div>
     
+    <div class="panel" id="transformPanel">
+        <div class="panel-header"><span>🪄 文章整形（rules.js連携）</span><span onclick="toggleTransformPanel()">✕</span></div>
+        <div class="panel-body">
+            <div style="font-size:12px; color:var(--btn-text); margin-bottom:8px;">
+                適用範囲: 構成モードなら「選択中（未選択時は全体）」、小説モードなら「全文」へ適用されます。
+            </div>
+            <div id="transformButtonGrid" class="transform-grid"></div>
+        </div>
+    </div>
+
     <div class="panel" id="searchPanel">
         <div class="panel-header"><span>検索</span><span onclick="toggleSearch()">✕</span></div>
         <div style="padding:10px; border-bottom:1px solid var(--border);">
@@ -466,6 +492,7 @@
 </div>
 
 <div class="menu-popup" id="mainMenu">
+    <div class="menu-row" onclick="toggleTransformPanel()">🪄 文章整形（ルール適用）</div>
     <div class="menu-row" onclick="toggleRapidMode()">⚡ ラピッドモード切替</div>
     <div class="menu-row" onclick="toggleDark()">🌙 ダークモード切替</div>
     <div class="menu-row" onclick="toggleTemplate()">📋 テンプレート挿入</div>
@@ -477,12 +504,15 @@
     <div class="menu-row" onclick="resetProject()" style="color:var(--danger)">🗑 タブ削除・初期化</div>
 </div>
 
+<!-- 外部ルール定義 ＆ ノード操作マネージャーの読み込み -->
+<script src="rules.js"></script>
+<script src="node_manager.js"></script>
+
 <script>
 const STORAGE_KEY = 'wafu_v4_2';
 let projects = [], currentProjectId = null, currentMode = 'list';
-let undoStack = [], redoStack = [], uidCounter = 0;
+let undoStack = [], redoStack = [];
 
-// 集中モード用のグローバル状態
 let focusTodayLines = 0;
 let currentFocusColor = "";
 let focusSubMode = 'write';
@@ -490,7 +520,7 @@ let editModeNodes = [];
 let currentEditIndex = 0;
 let isFocusLineEditing = false;
 let currentFocusFilter = 'all';
-let returnUrlBase = ""; // 帰り道のURLを記憶する変数
+let returnUrlBase = "";
 
 const focusPlaceholders = [
     "ただ、今の一行を紡ぐ...",
@@ -526,7 +556,63 @@ window.onload = () => {
         saveProjects();
         alert("言の葉を選る庵から、文章を構成ツリーへと正しく召喚いたしました。");
     }
+
+    buildTransformPanelButtons();
 };
+
+function toggleTransformPanel() {
+    document.getElementById('transformPanel').classList.toggle('show');
+    document.getElementById('mainMenu').classList.remove('show');
+}
+
+function buildTransformPanelButtons() {
+    const grid = document.getElementById('transformButtonGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    const rules = (typeof customTransformers !== 'undefined') ? customTransformers : [];
+    if (rules.length === 0) {
+        grid.innerHTML = '<div style="font-size:12px; color:var(--btn-text); grid-column: 1/-1;">rules.js が見つからないか、ルールが空です。</div>';
+        return;
+    }
+
+    rules.forEach(rule => {
+        const btn = document.createElement('button');
+        btn.textContent = rule.name;
+        btn.onclick = () => applyTransformRule(rule);
+        grid.appendChild(btn);
+    });
+}
+
+function applyTransformRule(rule) {
+    if (currentMode === 'novel') {
+        const ta = document.getElementById('novelText');
+        const prev = ta.value;
+        const next = rule.run(prev);
+        if (prev !== next) {
+            ta.value = next;
+            pushHistory();
+        }
+    } else {
+        const sel = getSel();
+        const targets = sel.length > 0 ? sel : Array.from(document.querySelectorAll('.node'));
+        if (targets.length === 0) return;
+
+        targets.forEach(li => {
+            const ta = li.querySelector('.row-text');
+            if (ta) {
+                const prev = ta.value;
+                const next = rule.run(prev);
+                if (prev !== next) {
+                    ta.value = next;
+                    resize(ta);
+                }
+            }
+        });
+        pushHistory();
+    }
+    toggleTransformPanel();
+}
 
 function returnToKotonoha() {
     if (!returnUrlBase) return;
@@ -597,38 +683,6 @@ function restoreSnapshot(s) {
     document.getElementById('novelText').value=s.novel; if(currentMode!==s.mode) setMode(s.mode);
     saveProjects(); updateCount();
 }
-
-function generateId() { return 'n' + (++uidCounter); }
-function addNode(text="", parentUl=null, color="", memo="") {
-    const ul = parentUl || document.getElementById('rootList');
-    const li = document.createElement('li'); li.className = 'node'; li.id = generateId();
-    li.innerHTML = `
-        <div class="node-box" data-color="${color}">
-            <div class="node-content" onclick="handleNodeClick(this)">
-                <div class="check-circle"></div>
-                <div style="padding:4px;color:#ccc;cursor:grab;" ontouchstart="preventDrag(event)">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
-                </div>
-                <textarea class="row-text" rows="1" oninput="resize(this);updateCount()" onblur="pushHistory()">${escapeHtml(text)}</textarea>
-                <div style="padding:4px;color:#ccc;" onclick="toggleMemo(this)">
-                    <svg class="icon" style="width:16px;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                </div>
-            </div>
-            <div class="node-memo ${memo?'show':''}"><textarea class="memo-input" placeholder="メモ..." oninput="pushHistory()">${escapeHtml(memo)}</textarea></div>
-        </div><ul></ul>`;
-    ul.appendChild(li); resize(li.querySelector('.row-text')); return li;
-}
-function preventDrag(e){e.preventDefault();}
-function buildTree(ul, data) { data.forEach(d => { const li = addNode(d.text, ul, d.color, d.memo); if(d.children) buildTree(li.querySelector('ul'), d.children); }); }
-function serializeTree(ul) {
-    return Array.from(ul.children).map(li => ({
-        text: li.querySelector('.row-text').value,
-        color: li.querySelector('.node-box').getAttribute('data-color')||"",
-        memo: li.querySelector('.memo-input').value,
-        children: serializeTree(li.querySelector('ul'))
-    }));
-}
-function resize(ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
 function setMode(mode) {
     const prevMode = currentMode;
@@ -702,7 +756,6 @@ function submitRapid() {
     input.value = ""; input.focus();
 }
 
-/* 集中メモモード（執筆＆推敲）の拡張ロジック */
 function setFocusSubMode(subMode) {
     focusSubMode = subMode;
     document.querySelectorAll('.sub-m-btn').forEach(b => b.classList.remove('active'));
@@ -979,19 +1032,17 @@ function submitFocus() {
     }
 }
 
-function toggleSelectMode() { document.body.classList.toggle('select-mode'); document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected')); }
-function handleNodeClick(c) { if(document.body.classList.contains('select-mode')){ c.parentElement.classList.toggle('selected'); updateCount(); } }
-function getSel() { return Array.from(document.querySelectorAll('.node-box.selected')).map(b=>b.closest('li')); }
-function moveIndent(d) {
-    const t=getSel().length?getSel():[getFocusedLi()];
-    t.forEach(li=>{ if(!li)return; if(d===1){const p=li.previousElementSibling;if(p){p.querySelector('ul').appendChild(li);p.querySelector('ul').style.display='block';}}else{const p=li.parentElement.closest('li');if(p)p.after(li);} }); pushHistory();
+function toggleSelectMode() { 
+    document.body.classList.toggle('select-mode'); 
+    document.querySelectorAll('.node-box').forEach(b=>b.classList.remove('selected')); 
 }
-function moveItem(d) {
-    const t=getSel(); if(!t.length)return;
-    (d===1?t.reverse():t).forEach(li=>{ if(d===-1&&li.previousElementSibling)li.parentElement.insertBefore(li,li.previousElementSibling); if(d===1&&li.nextElementSibling)li.parentElement.insertBefore(li,li.nextElementSibling.nextElementSibling); }); pushHistory();
+function handleNodeClick(c) { 
+    if(document.body.classList.contains('select-mode')){ 
+        c.parentElement.classList.toggle('selected'); 
+        updateCount(); 
+    } 
 }
 
-/* 没箱（ゴミ箱）システム */
 function toggleTrashPanel() {
     document.getElementById('trashPanel').classList.toggle('show');
     document.getElementById('mainMenu').classList.remove('show');
@@ -1054,18 +1105,6 @@ function clearTrash() {
     renderTrash();
 }
 
-function mergeNodes() {
-    const t=getSel(); if(t.length<2){alert("2つ以上選択してください");return;}
-    const f=t[0]; let txt=f.querySelector('.row-text').value;
-    for(let i=1;i<t.length;i++){ txt+="\n"+t[i].querySelector('.row-text').value; Array.from(t[i].querySelector('ul').children).forEach(k=>f.querySelector('ul').appendChild(k)); t[i].remove(); }
-    f.querySelector('.row-text').value=txt; resize(f.querySelector('.row-text')); toggleSelectMode(); pushHistory();
-}
-function setNodeColorMenu() {
-    const t=getSel(); if(!t.length)return;
-    const c=prompt("色(red,blue,green,yellow,purple,空白):", "red");
-    t.forEach(li=>li.querySelector('.node-box').setAttribute('data-color',c)); toggleSelectMode(); pushHistory();
-}
-function toggleMemo(b) { b.closest('.node-box').querySelector('.node-memo').classList.toggle('show'); }
 function toggleSearch() { document.getElementById('searchPanel').classList.toggle('show'); if(document.getElementById('searchPanel').classList.contains('show'))document.getElementById('searchInput').focus(); }
 function runSearch() {
     const q=document.getElementById('searchInput').value, lst=document.getElementById('searchResultList'); lst.innerHTML='';
@@ -1099,9 +1138,6 @@ function updateCount() {
 function handleNovelInput(){updateCount();}
 function toggleDark(){document.body.classList.toggle('dark-mode');}
 function toggleMenu(){document.getElementById('mainMenu').classList.toggle('show');}
-function getFocusedLi(){const ae=document.activeElement; return (ae&&ae.classList.contains('row-text'))?ae.closest('li'):null;}
-
-function escapeHtml(s){ if(!s)return ""; return s.replace(/[&<>"']/g,c=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c])); }
 
 function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
 function getExportContent() {
@@ -1154,8 +1190,6 @@ function importFile(input) {
 }
 function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
 
-// 🌸 常設：いつでも庵（ことば一撰）を直接、新規タブで開く関数
-// ここにLucia様の「ことば一撰（庵）」の実際のURLを設定してくださいませ
 const KOTONOHA_AN_URL = '[https://luciamcode.github.io/kotoba_issen/](https://luciamcode.github.io/kotoba_issen/)';
 function openKotonohaDirect() {
     window.open(KOTONOHA_AN_URL, '_blank');
