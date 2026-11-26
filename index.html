@@ -286,12 +286,39 @@
     .panel.show { display: flex; }
     .panel-header { padding: 10px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; align-items: center;}
     .panel-body { flex: 1; overflow-y: auto; padding: 10px; }
-    .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px; text-align: center; font-weight: bold;}
+    .panel-body button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; background: var(--bg-paper); border: 1px solid var(--border); color: var(--text); border-radius: 4px; text-align: center; font-weight: bold; cursor: pointer;}
     
-    .io-options { margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 4px; }
-    .radio-group label { margin-right: 15px; font-size: 14px; cursor: pointer; }
+    .io-options { margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 4px; }
+    .radio-group label { margin-right: 12px; font-size: 13px; cursor: pointer; }
     .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
     .btn-group button { flex: 1; margin-bottom: 0; }
+    
+    .filename-box {
+        margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+        display: flex; align-items: center; gap: 6px; font-size: 13px;
+    }
+    .filename-input {
+        flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px;
+        background: var(--bg-paper); color: var(--text); font-size: 14px; outline: none;
+    }
+    .split-section {
+        margin: 14px 0; padding: 10px; border: 1px solid var(--accent);
+        border-radius: 6px; background: rgba(22, 94, 131, 0.04);
+    }
+    .split-title {
+        font-size: 13px; font-weight: bold; color: var(--accent); margin-bottom: 6px;
+    }
+    .split-row {
+        display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 12px;
+    }
+    .split-delim-input {
+        width: 70px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px;
+        background: var(--bg-paper); color: var(--text); font-size: 13px; text-align: center;
+    }
+    .split-ext-select {
+        padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px;
+        background: var(--bg-paper); color: var(--text); font-size: 13px;
+    }
 
     .transform-grid {
         display: grid;
@@ -403,7 +430,7 @@
     
     <!-- 🪄 文章整形パネル -->
     <div class="panel" id="transformPanel">
-        <div class="panel-header"><span>🪄 文章整形（rules.js連携）</span><span onclick="toggleTransformPanel()">✕</span></div>
+        <div class="panel-header"><span>🪄 文章整形（rules.js連携）</span><span onclick="toggleTransformPanel()" style="cursor:pointer;">✕</span></div>
         <div class="panel-body">
             <div style="font-size:12px; color:var(--btn-text); margin-bottom:8px;">
                 適用範囲: 構成モードなら「選択中（未選択時は全体）」、小説モードなら「全文」へ適用されます。
@@ -413,7 +440,7 @@
     </div>
 
     <div class="panel" id="searchPanel">
-        <div class="panel-header"><span>検索</span><span onclick="toggleSearch()">✕</span></div>
+        <div class="panel-header"><span>検索</span><span onclick="toggleSearch()" style="cursor:pointer;">✕</span></div>
         <div style="padding:10px; border-bottom:1px solid var(--border);">
             <input type="text" id="searchInput" placeholder="正規表現可" style="width:100%; padding:8px;">
             <div style="margin-top:5px; text-align:right;"><button onclick="runSearch()" style="width:auto; display:inline-block;">実行</button></div>
@@ -423,7 +450,7 @@
     </div>
 
     <div class="panel" id="ioPanel">
-        <div class="panel-header"><span>保存・連携</span><span onclick="toggleImportExport()">✕</span></div>
+        <div class="panel-header"><span>保存・連携</span><span onclick="toggleImportExport()" style="cursor:pointer;">✕</span></div>
         <div class="panel-body">
             <div class="io-options">
                 <div class="radio-group">
@@ -432,14 +459,38 @@
                     <label><input type="radio" name="exScope" value="selected"> 選択のみ</label>
                 </div>
                 <div style="margin-top:8px;"><label><input type="checkbox" id="exCodeBlock"> コードブロック(```)</label></div>
+                <div class="filename-box">
+                    <span>ファイル名:</span>
+                    <input type="text" id="exportFilename" class="filename-input" placeholder="空欄なら現在のタブ名">
+                </div>
             </div>
             <div class="btn-group">
                 <button onclick="copyToClipboard()">📋 コピー</button>
                 <button onclick="shareText()">🚀 共有</button>
             </div>
+            <button onclick="exportData('gdoc')" style="background:var(--selected); color:var(--accent); border-color:var(--accent);">📄 GDOC保存（1ファイル）</button>
+            <button onclick="exportData('md')">📝 MD保存（1ファイル）</button>
             <button onclick="exportData('txt')">💾 TXT保存</button>
-            <button onclick="exportData('md')">MD保存</button>
-            <button onclick="exportData('opml')">OPML保存</button>
+            <button onclick="exportData('opml')">🗂 OPML保存</button>
+
+            <!-- ✂️ 区切り線で分割して別ファイル保存（エピソードDB対応） -->
+            <div class="split-section">
+                <div class="split-title">✂️ 区切り線で分割して個別ファイル保存</div>
+                <div class="split-row">
+                    <span>区切り記号:</span>
+                    <input type="text" id="splitDelimiter" class="split-delim-input" value="---">
+                    <span>形式:</span>
+                    <select id="splitExt" class="split-ext-select">
+                        <option value="gdoc" selected>.gdoc</option>
+                        <option value="md">.md</option>
+                    </select>
+                </div>
+                <div style="font-size:11px; color:var(--btn-text); margin-bottom:8px; line-height:1.4;">
+                    ※各ブロックの1行目（例: <code>## EP002 タイトル</code>）から自動命名します。見出しがない場合は「ファイル名_001」形式で連番になります。
+                </div>
+                <button onclick="exportSplitFiles()" style="background:var(--accent); color:#fff; border:none; margin-bottom:0;">📚 区切りごとに別ファイル一括保存</button>
+            </div>
+
             <hr>
             <button onclick="importFromClipboard()">📋 クリップボード読込</button>
             <input type="file" id="fileInput" onchange="importFile(this)" style="margin-top:5px;">
@@ -447,7 +498,7 @@
     </div>
 
     <div class="panel" id="tplPanel">
-        <div class="panel-header"><span>定型文</span><span onclick="toggleTemplate()">✕</span></div>
+        <div class="panel-header"><span>定型文</span><span onclick="toggleTemplate()" style="cursor:pointer;">✕</span></div>
         <div class="panel-body">
             <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
             <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
@@ -457,7 +508,7 @@
     </div>
 
     <div class="panel" id="trashPanel">
-        <div class="panel-header"><span>没箱（一時退避）</span><span onclick="toggleTrashPanel()">✕</span></div>
+        <div class="panel-header"><span>没箱（一時退避）</span><span onclick="toggleTrashPanel()" style="cursor:pointer;">✕</span></div>
         <div class="panel-body" id="trashList" style="font-size:14px; line-height:1.6;"></div>
         <div style="padding:10px; display:flex; gap:10px;">
             <button onclick="clearTrash()" style="background:var(--danger); color:#fff; flex:1; margin-bottom:0;">🗑 完全に空にする</button>
@@ -1140,13 +1191,11 @@ function updateCount() {
 function handleNovelInput(){updateCount();}
 function toggleDark(){document.body.classList.toggle('dark-mode');}
 
-// 修正：引数 event を受けてメニュー外タップの暴発を防止
 function toggleMenu(e) {
     if (e) e.stopPropagation();
     document.getElementById('mainMenu').classList.toggle('show');
 }
 
-// 追加：メニュー以外の画面タップで自動クローズ
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('mainMenu');
     if (menu && menu.classList.contains('show')) {
@@ -1156,7 +1205,19 @@ document.addEventListener('click', (e) => {
     }
 });
 
-function toggleImportExport() { document.getElementById('ioPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
+function toggleImportExport() {
+    const panel = document.getElementById('ioPanel');
+    panel.classList.toggle('show');
+    document.getElementById('mainMenu').classList.remove('show');
+    if (panel.classList.contains('show')) {
+        const p = projects.find(p => p.id === currentProjectId);
+        const fnInput = document.getElementById('exportFilename');
+        if (fnInput && p) {
+            fnInput.placeholder = `空欄なら「${p.name}」`;
+        }
+    }
+}
+
 function getExportContent() {
     const scope = document.querySelector('input[name="exScope"]:checked').value;
     const isCode = document.getElementById('exCodeBlock').checked;
@@ -1180,18 +1241,111 @@ function getExportContent() {
     if (isCode) content = "```\n" + content + "\n```"; 
     return content;
 }
+
 function copyToClipboard() { navigator.clipboard.writeText(getExportContent()).then(()=>alert("コピーしました")).catch(e=>alert(e)); }
 function shareText() { if(navigator.share){navigator.share({title:'執筆ノ間',text:getExportContent()});}else{alert("共有未対応ブラウザです");} }
+
+function resolveBaseFilename() {
+    const p = projects.find(p => p.id === currentProjectId);
+    const rawName = (document.getElementById('exportFilename')?.value || "").trim();
+    const baseName = rawName || (p ? p.name : "export");
+    const cleanName = baseName.replace(/\.(gdoc|md|txt|opml)$/i, "");
+    return cleanName.replace(/[\\/:*?"<>|]/g, "_");
+}
+
 function exportData(type) {
-    let c = getExportContent(); if(!c && type!=='opml') return;
-    if(type==='md'){ c = c.split('\n').map(l=>{const m=l.match(/^(　+)(.*)/);return m?"  ".repeat(m[1].length)+"- "+m[2]:(l?"- "+l:"");}).join('\n'); }
+    let c = getExportContent(); 
+    if(!c && type!=='opml') return;
+    
+    if(type==='md' || type==='gdoc'){ 
+        // すでにMarkdown記号（#, -, ```）で書かれている行はそのまま活かし、構成ツリー由来の字下げのみ変換
+        c = c.split('\n').map(l=>{
+            if (/^\s*(#|-|\*|\d+\.|```|---)/.test(l)) return l.trimStart();
+            const m=l.match(/^(　+)(.*)/);
+            return m?"  ".repeat(m[1].length)+"- "+m[2]:l;
+        }).join('\n'); 
+    }
     else if(type==='opml'){
         c=`<?xml version="1.0"?><opml version="2.0"><head><title>Export</title></head><body>`;
         function tr(ul){let s="";Array.from(ul.children).forEach(li=>{if(li.classList.contains('hidden'))return;s+=`<outline text="${escapeHtml(li.querySelector('.row-text').value)}">`+tr(li.querySelector('ul'))+`</outline>`;});return s;}
         c+=tr(document.getElementById('rootList'))+`</body></opml>`;
     }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([c],{type:"text/plain"})); a.download = `export.${type}`; a.click();
+
+    const safeName = resolveBaseFilename();
+    const a = document.createElement('a'); 
+    a.href = URL.createObjectURL(new Blob([c],{type:"text/plain;charset=utf-8"})); 
+    a.download = `${safeName}.${type}`; 
+    a.click();
 }
+
+// ✂️ 区切り線で分割して別ファイルとして一括保存
+function exportSplitFiles() {
+    const rawContent = getExportContent();
+    if (!rawContent || !rawContent.trim()) {
+        alert("保存する文章がありません。");
+        return;
+    }
+
+    const delimInput = document.getElementById('splitDelimiter');
+    const delimiter = (delimInput && delimInput.value.trim()) ? delimInput.value.trim() : "---";
+    const ext = document.getElementById('splitExt')?.value || "gdoc";
+    const baseName = resolveBaseFilename();
+
+    // 区切り記号だけの行で分割（前後の空白は許容）
+    const escapedDelim = delimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const splitRegex = new RegExp(`^\\s*${escapedDelim}\\s*$`, 'm');
+
+    const blocks = rawContent
+        .split(splitRegex)
+        .map(b => b.trim())
+        .filter(b => b.length > 0);
+
+    if (blocks.length === 0) {
+        alert("分割できるブロックが見つかりませんでした。");
+        return;
+    }
+
+    if (!confirm(`${blocks.length}件のエピソードファイル（.${ext}）に分割して保存しますか？`)) {
+        return;
+    }
+
+    blocks.forEach((block, index) => {
+        // Markdown整形（見出しやハイフンはそのまま残す）
+        const formatted = block.split('\n').map(l => {
+            if (/^\s*(#|-|\*|\d+\.|```)/.test(l)) return l.trimStart();
+            const m = l.match(/^(　+)(.*)/);
+            return m ? "  ".repeat(m[1].length) + "- " + m[2] : l;
+        }).join('\n');
+
+        // 1行目からファイル名を自動抽出（例: "## EP002 タイトル" -> "EP002_タイトル"）
+        const firstLine = formatted.split('\n')[0].trim();
+        let fileName = "";
+        const epMatch = firstLine.match(/^#*\s*(EP\d+)\s*[:：]?\s*(.+)$/i);
+        if (epMatch) {
+            const epNum = epMatch[1].toUpperCase();
+            const epTitle = epMatch[2].trim().replace(/[\\/:*?"<>|]/g, "_");
+            fileName = `${epNum}_${epTitle}`;
+        } else if (firstLine.startsWith("#")) {
+            fileName = firstLine.replace(/^#+\s*/, "").replace(/[\\/:*?"<>|]/g, "_");
+        } else {
+            const seq = String(index + 1).padStart(3, '0');
+            fileName = `${baseName}_${seq}`;
+        }
+
+        // モバイルブラウザでの連続ダウンロード詰まりを防ぐため少し時間をずらして実行
+        setTimeout(() => {
+            const blob = new Blob([formatted + "\n"], { type: "text/plain;charset=utf-8" });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${fileName}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }, index * 350);
+    });
+}
+
 function importFromClipboard() {
     navigator.clipboard.readText().then(t=>{ if(!t)return; document.getElementById('novelText').value=t; setMode('novel'); alert("貼付完了"); toggleImportExport(); });
 }
@@ -1207,7 +1361,7 @@ function importFile(input) {
 }
 function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
 
-const KOTONOHA_AN_URL = '[https://luciamcode.github.io/kotoba_issen/](https://luciamcode.github.io/kotoba_issen/)';
+const KOTONOHA_AN_URL = 'https://luciamcode.github.io/kotoba_issen/';
 function openKotonohaDirect() {
     window.open(KOTONOHA_AN_URL, '_blank');
 }
