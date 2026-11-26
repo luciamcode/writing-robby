@@ -1272,8 +1272,10 @@ function exportData(type) {
     }
 
     const safeName = resolveBaseFilename();
+    // gdocのときだけ application/octet-stream にして .txt の自動付与を防ぐ
+    const mimeType = (type === 'gdoc') ? "application/octet-stream" : "text/plain;charset=utf-8";
     const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(new Blob([c],{type:"text/plain;charset=utf-8"})); 
+    a.href = URL.createObjectURL(new Blob([c],{type:mimeType}));
     a.download = `${safeName}.${type}`; 
     a.click();
 }
@@ -1334,7 +1336,8 @@ function exportSplitFiles() {
 
         // モバイルブラウザでの連続ダウンロード詰まりを防ぐため少し時間をずらして実行
         setTimeout(() => {
-            const blob = new Blob([formatted + "\n"], { type: "text/plain;charset=utf-8" });
+            const mimeType = (ext === 'gdoc') ? "application/octet-stream" : "text/plain;charset=utf-8";
+            const blob = new Blob([formatted + "\n"], { type: mimeType });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `${fileName}.${ext}`;
