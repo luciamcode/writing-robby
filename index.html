@@ -47,17 +47,24 @@
         background: var(--bg-paper); color: var(--accent); border-color: var(--border);
         font-weight: bold; position: relative; top: 1px;
     }
-    .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; }
+    .p-add-btn { padding: 6px 10px; color: var(--accent); cursor: pointer; font-weight: bold; }
 
     .header {
-        height: var(--h-head); display: flex; align-items: center; padding: 0 10px; justify-content: space-between;
+        height: var(--h-head); display: flex; align-items: center; padding: 0 8px; justify-content: space-between; gap: 4px;
     }
-    .mode-switch { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; }
+    .head-btn {
+        padding: 4px 8px; background: var(--bar-bg); color: var(--accent);
+        border: 1px solid var(--border); border-radius: 4px; font-size: 11px;
+        cursor: pointer; font-weight: bold; white-space: nowrap; flex-shrink: 0;
+    }
+    .head-btn:active { background: var(--selected); }
+
+    .mode-switch { display: flex; background: rgba(0,0,0,0.05); border-radius: 6px; padding: 2px; flex-shrink: 0; }
     .m-btn {
-        padding: 4px 10px; border: none; background: transparent; color: var(--btn-text); font-size: 12px; cursor: pointer;
+        padding: 4px 8px; border: none; background: transparent; color: var(--btn-text); font-size: 11px; cursor: pointer;
     }
     .m-btn.active { background: var(--bg-paper); color: var(--accent); font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    .count-info { font-size: 10px; color: var(--btn-text); text-align: right; line-height: 1.2; margin-left: 10px; }
+    .count-info { font-size: 10px; color: var(--btn-text); text-align: right; line-height: 1.2; margin-left: 4px; white-space: nowrap; }
 
     /* 2. メインエリア */
     #mainArea {
@@ -358,9 +365,10 @@
         <div class="p-add-btn" onclick="addProject()">＋</div>
     </div>
     <div class="header">
-        <button id="btn-return-io" onclick="returnToKotonoha()" style="display:none; padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵に戻る ↩</button>
+        <button id="btn-return-io" class="head-btn" onclick="returnToKotonoha()" style="display:none; background:var(--accent); color:#fff; border:none;">庵に戻る ↩</button>
         
-        <button id="btn-open-kotonoha" onclick="openKotonohaDirect()" style="padding:4px 10px; background:var(--bar-bg); color:var(--accent); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-weight:bold; margin-right:8px;">庵を開く 🏠</button>
+        <button id="btn-open-kotonoha" class="head-btn" onclick="openKotonohaDirect()">庵 🏠</button>
+        <button id="btn-insert-hr" class="head-btn" onclick="insertDivider()" title="区切り線(---)を挿入">＋区切り</button>
         
         <div class="mode-switch">
             <button class="m-btn active" id="btn-mode-list" onclick="setMode('list')">構成</button>
@@ -369,10 +377,10 @@
         </div>
         <div style="flex:1"></div>
         <div class="count-info" id="countInfo">全: 0<br>選: 0</div>
-        <div class="f-btn" onclick="toggleSearch()" style="width:40px; margin-left:10px;">
+        <div class="f-btn" onclick="toggleSearch()" style="width:34px; flex:none;">
             <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </div>
-        <div class="f-btn" onclick="toggleMenu(event)" style="width:40px;">
+        <div class="f-btn" onclick="toggleMenu(event)" style="width:34px; flex:none;">
             <svg class="icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </div>
     </div>
@@ -500,6 +508,7 @@
     <div class="panel" id="tplPanel">
         <div class="panel-header"><span>定型文</span><span onclick="toggleTemplate()" style="cursor:pointer;">✕</span></div>
         <div class="panel-body">
+            <div class="search-item" onclick="insertTemplate('\n---\n')">区切り線（---）</div>
             <div class="search-item" onclick="insertTemplate('【登場人物】\n・名前：\n・年齢：\n・性格：')">人物設定</div>
             <div class="search-item" onclick="insertTemplate('【場面】\n・場所：\n・時間：\n・目的：')">シーン設定</div>
             <div class="search-item" onclick="insertTemplate('\n……\n　　　******\n……\n')">場面転換</div>
@@ -543,7 +552,7 @@
     </div>
 </div>
 
-<!-- メニューポップアップ（閉じる行を追加） -->
+<!-- メニューポップアップ -->
 <div class="menu-popup" id="mainMenu">
     <div class="menu-row" onclick="toggleMenu(event)" style="justify-content: flex-end; color: var(--btn-text); font-weight: bold; background: rgba(0,0,0,0.03);">✕ 閉じる</div>
     <div class="menu-row" onclick="toggleTransformPanel()">🪄 文章整形（ルール適用）</div>
@@ -587,7 +596,7 @@ window.onload = () => {
     loadProjects();
     if (projects.length === 0) createProject("本編");
     
-    switchProject(projects[0].id);
+    switchProject(projects[0].id, true);
 
     const params = new URLSearchParams(window.location.search);
     const incomingText = params.get('text');
@@ -612,6 +621,52 @@ window.onload = () => {
 
     buildTransformPanelButtons();
 };
+
+// 画面を離れる・隠れる直前にも必ず現在のタブを保存
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveProjects();
+});
+window.addEventListener('beforeunload', () => {
+    saveProjects();
+});
+
+// ✂️ 区切り線（---）挿入ボタンの動作
+function insertDivider() {
+    const delimInput = document.getElementById('splitDelimiter');
+    const divider = (delimInput && delimInput.value.trim()) ? delimInput.value.trim() : "---";
+
+    if (currentMode === 'novel') {
+        const ta = document.getElementById('novelText');
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const before = ta.value.slice(0, start);
+        const after = ta.value.slice(end);
+        const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
+        const suffix = (after.length > 0 && !after.startsWith('\n')) ? '\n' : (after.length === 0 ? '\n' : '');
+        const insertStr = prefix + divider + suffix;
+        ta.value = before + insertStr + after;
+        ta.selectionStart = ta.selectionEnd = start + insertStr.length;
+        ta.focus();
+    } else if (currentMode === 'focus') {
+        addNode(divider, null, "");
+    } else {
+        // 構成モード：フォーカス中の行があればその直後、なければ末尾に追加
+        const activeEl = document.activeElement;
+        const currentLi = activeEl ? activeEl.closest('.node') : null;
+        const newLi = addNode(divider, null);
+        if (currentLi && currentLi.parentElement) {
+            currentLi.parentElement.insertBefore(newLi, currentLi.nextSibling);
+        }
+        const nextLi = addNode("", null);
+        if (newLi.parentElement) {
+            newLi.parentElement.insertBefore(nextLi, newLi.nextSibling);
+        }
+        const nextTa = nextLi.querySelector('.row-text');
+        if (nextTa) nextTa.focus();
+    }
+    pushHistory();
+    saveProjects();
+}
 
 function toggleTransformPanel() {
     document.getElementById('transformPanel').classList.toggle('show');
@@ -675,53 +730,150 @@ function returnToKotonoha() {
     window.open(`${returnUrlBase}?text=${encoded}`, '_self');
 }
 
-function loadProjects() { try { const str = localStorage.getItem(STORAGE_KEY); if (str) projects = JSON.parse(str); } catch(e) {} }
+function loadProjects() { 
+    try { 
+        const str = localStorage.getItem(STORAGE_KEY); 
+        if (str) projects = JSON.parse(str); 
+    } catch(e) {} 
+}
+
 function saveProjects() {
     if (currentProjectId) {
         const p = projects.find(p => p.id === currentProjectId);
         if (p) {
-            p.tree = serializeTree(document.getElementById('rootList'));
-            p.novel = document.getElementById('novelText').value;
+            // 小説モード編集中の場合は、最新の小説テキストからツリーも同期させてから両方保存
+            if (currentMode === 'novel') {
+                const novelVal = document.getElementById('novelText').value;
+                p.novel = novelVal;
+                p.tree = novelTextToTreeData(novelVal);
+            } else {
+                p.tree = serializeTree(document.getElementById('rootList'));
+                p.novel = treeToNovelText(document.getElementById('rootList'));
+            }
             p.mode = currentMode;
             if(!p.trash) p.trash = [];
             if(p.focusTotal === undefined) p.focusTotal = 0;
         }
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    } catch(e) {
+        console.error("LocalStorage保存エラー:", e);
+    }
 }
+
+function treeToNovelText(ul, depth = 0) {
+    let txt = "";
+    Array.from(ul.children).forEach(li => {
+        const ta = li.querySelector('.row-text');
+        if (ta) txt += "　".repeat(depth) + ta.value + "\n";
+        const childUl = li.querySelector('ul');
+        if (childUl) txt += treeToNovelText(childUl, depth + 1);
+    });
+    return txt;
+}
+
+function novelTextToTreeData(txt) {
+    const root = [];
+    const stack = [{ l: -1, children: root }];
+    txt.split('\n').forEach(line => {
+        if (!line.trim()) return;
+        const idt = (line.match(/^(　|\t|\s)+/) || [""])[0].replace(/　/g, ' ').replace(/\t/g, ' ').length;
+        let l = idt;
+        if (l > stack[stack.length - 1].l + 1) l = stack[stack.length - 1].l + 1;
+        while (stack.length > 1 && stack[stack.length - 1].l >= l) stack.pop();
+        const node = { text: line.trim(), children: [] };
+        stack[stack.length - 1].children.push(node);
+        stack.push({ l: l, children: node.children });
+    });
+    return root;
+}
+
 function createProject(name) {
-    const newId = 'proj_' + Date.now();
-    projects.push({ id: newId, name: name, tree: [{text: "新規", children:[]}], novel: "", mode: 'list', trash: [], focusTotal: 0 });
-    saveProjects(); renderTabs();
-    if (projects.length === 1) switchProject(newId);
+    saveProjects(); // 新規作成前に現在のタブを確実に保存
+    const newId = 'proj_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    projects.push({ id: newId, name: name, tree: [{text: "", children:[]}], novel: "", mode: 'list', trash: [], focusTotal: 0 });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    renderTabs();
+    switchProject(newId, true);
 }
-function addProject() { const name = prompt("タブ名:", "新規"); if (name) createProject(name); }
+
+function addProject() { 
+    const name = prompt("タブ名:", "新規"); 
+    if (name && name.trim()) createProject(name.trim()); 
+}
+
 function renderTabs() {
-    const bar = document.getElementById('projectBar'); const addBtn = bar.querySelector('.p-add-btn');
+    const bar = document.getElementById('projectBar'); 
+    const addBtn = bar.querySelector('.p-add-btn');
     bar.innerHTML = '';
     projects.forEach(p => {
-        const div = document.createElement('div'); div.className = `p-tab ${p.id === currentProjectId ? 'active' : ''}`;
-        div.innerText = p.name; div.onclick = () => switchProject(p.id); bar.appendChild(div);
+        const div = document.createElement('div'); 
+        div.className = `p-tab ${p.id === currentProjectId ? 'active' : ''}`;
+        div.innerText = p.name; 
+        div.onclick = () => switchProject(p.id); 
+        bar.appendChild(div);
     });
     bar.appendChild(addBtn);
 }
-function switchProject(id) {
-    if (currentProjectId === id) return; saveProjects();
-    currentProjectId = id; const p = projects.find(p => p.id === id);
+
+function switchProject(id, skipSave = false) {
+    if (currentProjectId === id && !skipSave) return; 
+    if (!skipSave && currentProjectId) saveProjects();
+
+    currentProjectId = id; 
+    const p = projects.find(p => p.id === id);
+    if (!p) return;
     if (!p.trash) p.trash = [];
     if (p.focusTotal === undefined) p.focusTotal = 0;
     
     undoStack = []; redoStack = [];
     document.getElementById('rootList').innerHTML = '';
-    buildTree(document.getElementById('rootList'), p.tree);
+    buildTree(document.getElementById('rootList'), p.tree || []);
     document.getElementById('novelText').value = p.novel || "";
-    setMode(p.mode || 'list'); renderTabs(); pushHistory();
+    
+    // タブ切替時は変換ロジックを挟まずに保存済みモードをそのまま表示
+    applyModeDisplayOnly(p.mode || 'list');
+    renderTabs(); 
+    pushHistory();
 }
+
+function applyModeDisplayOnly(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
+    if(mode==='list') document.getElementById('btn-mode-list').classList.add('active');
+    if(mode==='novel') document.getElementById('btn-mode-novel').classList.add('active');
+    if(mode==='focus') document.getElementById('btn-mode-focus').classList.add('active');
+
+    const lv=document.getElementById('listView'), nv=document.getElementById('novelView'), fv=document.getElementById('focusView');
+    const ft=document.querySelector('.footer');
+    const isRapid = document.body.classList.contains('rapid-mode');
+
+    lv.style.display='none'; nv.style.display='none'; fv.style.display='none';
+    if (mode === 'novel') {
+        nv.style.display = 'block';
+        ft.style.display = isRapid ? 'flex' : 'none';
+    } else if (mode === 'focus') {
+        fv.style.display = 'flex';
+        ft.style.display = 'none';
+        setFocusSubMode(focusSubMode);
+    } else {
+        lv.style.display = 'block';
+        ft.style.display = 'flex';
+    }
+    updateCount();
+}
+
 function resetProject() {
-    if (!confirm("削除しますか？")) return;
+    if (!confirm("このタブを削除しますか？")) return;
     projects = projects.filter(p => p.id !== currentProjectId);
-    if (projects.length === 0) createProject("新規");
-    switchProject(projects[0].id); saveProjects();
+    currentProjectId = null;
+    if (projects.length === 0) {
+        createProject("本編");
+    } else {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+        switchProject(projects[0].id, true);
+    }
 }
 
 function pushHistory() {
@@ -733,7 +885,7 @@ function undo() { if(undoStack.length<=1)return; redoStack.push(undoStack.pop())
 function redo() { if(redoStack.length===0)return; const n=redoStack.pop(); undoStack.push(n); restoreSnapshot(n); }
 function restoreSnapshot(s) {
     document.getElementById('rootList').innerHTML=''; buildTree(document.getElementById('rootList'), s.tree);
-    document.getElementById('novelText').value=s.novel; if(currentMode!==s.mode) setMode(s.mode);
+    document.getElementById('novelText').value=s.novel; if(currentMode!==s.mode) applyModeDisplayOnly(s.mode);
     saveProjects(); updateCount();
 }
 
@@ -753,31 +905,35 @@ function setMode(mode) {
     lv.style.display='none'; nv.style.display='none'; fv.style.display='none';
 
     if(mode==='novel') {
-        let txt=""; function tr(ul,d){Array.from(ul.children).forEach(li=>{txt+="　".repeat(d)+li.querySelector('.row-text').value+"\n";tr(li.querySelector('ul'),d+1)})}
-        tr(document.getElementById('rootList'),0); document.getElementById('novelText').value=txt;
+        const txt = treeToNovelText(document.getElementById('rootList'), 0);
+        document.getElementById('novelText').value = txt;
         nv.style.display='block'; 
         ft.style.display = isRapid ? 'flex' : 'none';
         
     } else if(mode==='focus') {
+        if(prevMode === 'novel') syncNovelToRootList();
         fv.style.display='flex';
         ft.style.display='none'; 
         setFocusSubMode(focusSubMode);
         
     } else {
-        if(prevMode === 'novel') {
-            const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
-            const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
-            lines.forEach(line=>{
-                if(!line.trim())return; const idt=(line.match(/^(　|\t|\s)+/)||[ ""])[0].replace(/　/g,' ').replace(/\t/g,' ').length;
-                let l=idt; if(l>stack[stack.length-1].l+1)l=stack[stack.length-1].l+1;
-                while(stack.length>1 && stack[stack.length-1].l>=l)stack.pop();
-                const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
-            });
-        }
+        if(prevMode === 'novel') syncNovelToRootList();
         lv.style.display='block'; 
         ft.style.display = 'flex';
     }
+    saveProjects();
     updateCount();
+}
+
+function syncNovelToRootList() {
+    const txt=document.getElementById('novelText').value, rt=document.getElementById('rootList'); rt.innerHTML='';
+    const lines=txt.split('\n'), stack=[{l:-1,ul:rt}];
+    lines.forEach(line=>{
+        if(!line.trim())return; const idt=(line.match(/^(　|\t|\s)+/)||[ ""])[0].replace(/　/g,' ').replace(/\t/g,' ').length;
+        let l=idt; if(l>stack[stack.length-1].l+1)l=stack[stack.length-1].l+1;
+        while(stack.length>1 && stack[stack.length-1].l>=l)stack.pop();
+        const li=addNode(line.trim(), stack[stack.length-1].ul); stack.push({l:l,ul:li.querySelector('ul')});
+    });
 }
 
 function toggleRapidMode() {
@@ -1178,7 +1334,7 @@ function runSearch() {
 }
 function toggleTemplate() { document.getElementById('tplPanel').classList.toggle('show'); document.getElementById('mainMenu').classList.remove('show'); }
 function insertTemplate(t) {
-    if(currentMode==='list'){const li=addNode(t,null); li.scrollIntoView();}
+    if(currentMode==='list'){const li=addNode(t.trim(),null); li.scrollIntoView();}
     else{const ta=document.getElementById('novelText'); const p=ta.selectionStart; ta.value=ta.value.slice(0,p)+t+ta.value.slice(p);}
     toggleTemplate(); pushHistory();
 }
@@ -1188,7 +1344,17 @@ function updateCount() {
     else{document.querySelectorAll('.row-text').forEach(x=>t+=x.value.length); getSel().forEach(li=>s+=li.querySelector('.row-text').value.length);}
     document.getElementById('countInfo').innerHTML=`全:${t}<br>選:${s}`;
 }
-function handleNovelInput(){updateCount();}
+
+// 小説モード入力時もリアルタイムで自動保存
+let novelSaveTimer = null;
+function handleNovelInput(){
+    updateCount();
+    clearTimeout(novelSaveTimer);
+    novelSaveTimer = setTimeout(() => {
+        saveProjects();
+    }, 300);
+}
+
 function toggleDark(){document.body.classList.toggle('dark-mode');}
 
 function toggleMenu(e) {
@@ -1258,7 +1424,6 @@ function exportData(type) {
     if(!c && type!=='opml') return;
     
     if(type==='md' || type==='gdoc'){ 
-        // すでにMarkdown記号（#, -, ```）で書かれている行はそのまま活かし、構成ツリー由来の字下げのみ変換
         c = c.split('\n').map(l=>{
             if (/^\s*(#|-|\*|\d+\.|```|---)/.test(l)) return l.trimStart();
             const m=l.match(/^(　+)(.*)/);
@@ -1272,10 +1437,9 @@ function exportData(type) {
     }
 
     const safeName = resolveBaseFilename();
-    // gdocのときだけ application/octet-stream にして .txt の自動付与を防ぐ
     const mimeType = (type === 'gdoc') ? "application/octet-stream" : "text/plain;charset=utf-8";
     const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(new Blob([c],{type:mimeType}));
+    a.href = URL.createObjectURL(new Blob([c], { type: mimeType })); 
     a.download = `${safeName}.${type}`; 
     a.click();
 }
@@ -1293,7 +1457,6 @@ function exportSplitFiles() {
     const ext = document.getElementById('splitExt')?.value || "gdoc";
     const baseName = resolveBaseFilename();
 
-    // 区切り記号だけの行で分割（前後の空白は許容）
     const escapedDelim = delimiter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const splitRegex = new RegExp(`^\\s*${escapedDelim}\\s*$`, 'm');
 
@@ -1312,14 +1475,12 @@ function exportSplitFiles() {
     }
 
     blocks.forEach((block, index) => {
-        // Markdown整形（見出しやハイフンはそのまま残す）
         const formatted = block.split('\n').map(l => {
             if (/^\s*(#|-|\*|\d+\.|```)/.test(l)) return l.trimStart();
             const m = l.match(/^(　+)(.*)/);
             return m ? "  ".repeat(m[1].length) + "- " + m[2] : l;
         }).join('\n');
 
-        // 1行目からファイル名を自動抽出（例: "## EP002 タイトル" -> "EP002_タイトル"）
         const firstLine = formatted.split('\n')[0].trim();
         let fileName = "";
         const epMatch = firstLine.match(/^#*\s*(EP\d+)\s*[:：]?\s*(.+)$/i);
@@ -1334,7 +1495,6 @@ function exportSplitFiles() {
             fileName = `${baseName}_${seq}`;
         }
 
-        // モバイルブラウザでの連続ダウンロード詰まりを防ぐため少し時間をずらして実行
         setTimeout(() => {
             const mimeType = (ext === 'gdoc') ? "application/octet-stream" : "text/plain;charset=utf-8";
             const blob = new Blob([formatted + "\n"], { type: mimeType });
@@ -1350,7 +1510,7 @@ function exportSplitFiles() {
 }
 
 function importFromClipboard() {
-    navigator.clipboard.readText().then(t=>{ if(!t)return; document.getElementById('novelText').value=t; setMode('novel'); alert("貼付完了"); toggleImportExport(); });
+    navigator.clipboard.readText().then(t=>{ if(!t)return; document.getElementById('novelText').value=t; setMode('novel'); pushHistory(); alert("貼付完了"); toggleImportExport(); });
 }
 function importFile(input) {
     const f=input.files[0]; if(!f)return;
@@ -1364,7 +1524,7 @@ function importFile(input) {
 }
 function parseOpml(x){const p=new DOMParser(),d=p.parseFromString(x,"text/xml");function w(n){const c=[];Array.from(n.children).forEach(k=>{if(k.tagName==='outline')c.push({text:k.getAttribute('text')||"",children:w(k)});});return c;}return w(d.querySelector('body'));}
 
-const KOTONOHA_AN_URL = 'https://luciamcode.github.io/kotoba_issen/';
+const KOTONOHA_AN_URL = '[https://luciamcode.github.io/kotoba_issen/](https://luciamcode.github.io/kotoba_issen/)';
 function openKotonohaDirect() {
     window.open(KOTONOHA_AN_URL, '_blank');
 }
